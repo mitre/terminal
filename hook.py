@@ -34,5 +34,5 @@ def start_terminal(loop, services):
 def start_socket_listener(loop, terminal):
     for sock in [5678]:
         print('...Socket opened on port %s' % sock)
-        h = asyncio.start_server(terminal.session.accept, '127.0.0.1', sock, loop=loop)
+        h = asyncio.start_server(terminal.session.accept, '0.0.0.0', sock, loop=loop)
         loop.create_task(h)

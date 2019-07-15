@@ -1,25 +1,25 @@
+from plugins.offensive.app.terminal.zero import Zero
 from plugins.offensive.app.utility.console import Console
-from plugins.offensive.app.utility.resource_svc import ResourceService
 
 
 class Agent:
 
-    def __init__(self, services, log):
+    def __init__(self, services, log, session):
         self.data_svc = services.get('data_svc')
         self.log = log
-        self.resource_service = ResourceService(services)
         self.console = Console()
+        self.services = services
+        self.session = session
 
     async def enter(self, paw, cmd):
         try:
             if cmd == '?':
                 await self.help()
-            elif cmd == 'i':
-                agent = await self.data_svc.dao.get('core_agent', dict(paw=paw))
-                instructions = await self.data_svc.dao.get('core_chain', dict(id=agent[0]['id']))
-                self.console.table(instructions)
-            elif cmd.startswith('rc'):
-                await self.resource_service.save(paw, cmd.split(' ')[1])
+            elif cmd == 'c':
+                conn = next(i['connection'] for i in self.session.sessions if i['paw'] == paw)
+                conn.setblocking(True)
+                conn.send(str.encode(' '))
+                await Zero(conn, self.services).enter()
             elif cmd == '':
                 pass
             else:
@@ -32,6 +32,4 @@ class Agent:
     @staticmethod
     async def help():
         print('AGENT MODE HELP:')
-        print('-> i: list all the uncollected instructions')
-        print('-> rc [n]: give a connected agent a resource file to run')
-
+        print('-> c: connect to the agent')
