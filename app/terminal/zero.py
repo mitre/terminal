@@ -6,9 +6,9 @@ from plugins.offensive.app.utility.console import Console
 
 class Zero:
 
-    def __init__(self, paw, conn, services):
+    def __init__(self, paw, conn, utility_svc):
         self.conn = conn
-        self.log = services.get('utility_svc').create_logger('zero-%s' % paw)
+        self.log = utility_svc.create_logger('zero-%s' % paw)
         self.console = Console()
 
     async def enter(self):
