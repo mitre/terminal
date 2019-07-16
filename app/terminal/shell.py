@@ -61,8 +61,7 @@ class Shell:
                 print(*lines[-n:])
 
     async def _start_agent_shell(self, cmd):
-        a = await self.data_svc.dao.get('core_agent', dict(id=cmd.split(' ')[1]))
-        await self.agent_shell.enter(a[0]['paw'])
+        await self.agent_shell.enter(cmd.split(' ')[1])
 
     async def _show_agents(self):
         agents = await self.data_svc.dao.get('core_agent')
