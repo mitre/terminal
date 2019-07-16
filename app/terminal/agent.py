@@ -1,3 +1,5 @@
+from aioconsole import ainput
+
 from plugins.offensive.app.terminal.zero import Zero
 from plugins.offensive.app.utility.console import Console
 
@@ -11,25 +13,33 @@ class Agent:
         self.services = services
         self.session = session
 
-    async def enter(self, paw, cmd):
-        try:
-            if cmd == '?':
-                await self.help()
-            elif cmd == 'c':
-                conn = next(i['connection'] for i in self.session.sessions if i['paw'] == paw)
-                conn.setblocking(True)
-                conn.send(str.encode(' '))
-                await Zero(conn, self.services).enter()
-            elif cmd == '':
-                pass
-            else:
-                self.console.line('Bad command - are you sure?', 'red')
-        except IndexError:
-            self.console.line('No results found', 'red')
-        except Exception as e:
-            self.console.line('Command not available: %s' % e, 'red')
+    async def enter(self, paw):
+        while True:
+            cmd = await ainput('%s> ' % paw)
+            commands = {
+                '?': lambda _: self._help(),
+                'c': lambda p: self._new_zero_shell(p),
+                ' ': lambda _: self._do_nothing()
+            }
+            await commands[cmd](paw)
+
+    """ PRIVATE """
 
     @staticmethod
-    async def help():
+    async def _help():
         print('AGENT MODE HELP:')
-        print('-> c: connect to the agent')
+        print('-> c: connect to the agent session')
+
+    async def _new_zero_shell(self, paw):
+        try:
+            conn = next(i['connection'] for i in self.session.sessions if i['paw'] == paw)
+            conn.setblocking(True)
+            conn.send(str.encode(' '))
+            await Zero(paw, conn, self.services).enter()
+        except StopIteration:
+            self.console.line('Session cannot be established with %s' % paw, 'red')
+
+    @staticmethod
+    async def _do_nothing():
+        pass
+
