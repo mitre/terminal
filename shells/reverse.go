@@ -36,10 +36,15 @@ func push(conn net.Conn) {
 
 func main() {
    host, _ := os.Hostname()
-	user, _ := user.Current()
+   user, _ := user.Current()
    paw := fmt.Sprintf("%s$%s", host, user.Username)
+
+   server := "127.0.0.1:5678"
+   if len(os.Args) == 2 {
+      server = os.Args[1]
+   }
    for {
-      conn, err := net.Dial("tcp", "127.0.0.1:5678")
+      conn, err := net.Dial("tcp", server)
       if err != nil {
          fmt.Println(err)
          time.Sleep(5 * time.Second)
