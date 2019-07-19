@@ -23,10 +23,9 @@ class Agent:
             commands = {
                 '?': lambda a,_: self._help(),
                 'c': lambda a,_: self._new_zero_shell(a),
-                'q': lambda a,c: self._queue_ability(a, c),
-                ' ': lambda a,_: self._do_nothing()
+                'q': lambda a,c: self._queue_ability(a, c)
             }
-            command = [c for c in commands.keys() if cmd.startswith(c)]
+            command = [c for c in commands.keys() if not cmd or cmd.startswith(c)]
             await commands[command[0]](agent[0], cmd)
 
     """ PRIVATE """
@@ -45,10 +44,6 @@ class Agent:
             await Zero(agent['paw'], conn, self.utility_svc).enter()
         except StopIteration:
             self.console.line('Session cannot be established with %s' % agent['paw'], 'red')
-
-    @staticmethod
-    async def _do_nothing():
-        pass
 
     async def _queue_ability(self, agent, command):
         ability_id = command.split(' ')[1]
