@@ -10,9 +10,9 @@
   executors:
     darwin:
       command: |
-        nohup #{files}/reverse-darwin &
+        nohup #{files}/reverse-darwin >/dev/null 2>&1 &
       payload: reverse-darwin
     linux:
       command: |
-        nohup #{files}/reverse-linux &
+        nohup #{files}/reverse-linux >/dev/null 2>&1 &
       payload: reverse-linux

@@ -25,6 +25,7 @@ def show_welcome_msg():
     custom_fig = Figlet(font='contrast')
     new_font = random.choice(custom_fig.getFonts())
     custom_fig.setFont(font=new_font)
+    print(new_font)
     print(custom_fig.renderText('caldera'))
 
 
