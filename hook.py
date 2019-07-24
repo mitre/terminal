@@ -12,7 +12,8 @@ address = None
 
 async def initialize(app, services):
     data_svc = services.get('data_svc')
-    await data_svc.reload_database(abilities='plugins/offensive/abilities')
+    await data_svc.reload_database(abilities='plugins/offensive/abilities',
+                                   adversaries='plugins/offensive/adversaries.yml',)
 
     logging.getLogger().setLevel(logging.FATAL)
     loop = asyncio.get_event_loop()
