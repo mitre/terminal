@@ -1,5 +1,6 @@
 import asyncio
 import glob
+import random
 
 from aioconsole import ainput
 
@@ -61,8 +62,10 @@ class Shell:
         await self.agent_shell.enter(cmd.split(' ')[1])
 
     async def _show_agents(self):
-        agents = await self.data_svc.dao.get('core_agent')
-        await self.console.table([dict(id=a['id'],
-                                       paw=a['paw'],
-                                       session=next(('Yes' for a in self.session.sessions if a['paw']), 'No'))
-                                  for a in agents])
+        agents = [dict(id=a['id'], paw=a['paw'], agent=True,
+                       session=next((True for i in self.session.sessions if i['paw'] == a['paw']), False))
+                  for a in await self.data_svc.dao.get('core_agent')]
+        for s in self.session.sessions:
+            if not next((i for i in agents if i['paw'] == s['paw']), False):
+                agents.append(dict(id=random.randint(1000, 2000), paw=s['paw'], agent=False, session=True))
+        await self.console.table(agents)
