@@ -1,7 +1,0 @@
----
-
-- name: Reverse Shell
-  description: Implant a reverse shell on the agent
-  phases:
-    1:
-      - 356d1722-7784-40c4-822b-0cf864b0b36d
