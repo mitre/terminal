@@ -12,9 +12,7 @@ address = None
 
 async def initialize(app, services):
     data_svc = services.get('data_svc')
-    await data_svc.reload_database(abilities='plugins/offensive/abilities',
-                                   adversaries='plugins/offensive/adversaries.yml',)
-
+    await data_svc.load_data(directory='plugins/offensive/data')
     logging.getLogger().setLevel(logging.FATAL)
     loop = asyncio.get_event_loop()
     show_welcome_msg()
@@ -26,7 +24,6 @@ def show_welcome_msg():
     custom_fig = Figlet(font='contrast')
     new_font = random.choice(custom_fig.getFonts())
     custom_fig.setFont(font=new_font)
-    print(new_font)
     print(custom_fig.renderText('caldera'))
 
 
