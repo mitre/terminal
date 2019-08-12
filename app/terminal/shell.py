@@ -29,9 +29,8 @@ class Shell:
                 commands = {
                     '?': lambda _: self._help(),
                     'logs': lambda c: self._print_logs(c),
-                    'pick': lambda c: self._start_agent_shell(cmd),
                     'agents': lambda _: self._show_agents(),
-                    'abilities': lambda _: self._show_abilities()
+                    'pick': lambda c: self._start_agent_shell(cmd)
                 }
                 command = [c for c in commands.keys() if cmd.startswith(c)]
                 await commands[command[0]](cmd)
@@ -45,10 +44,9 @@ class Shell:
     @staticmethod
     async def _help():
         print('HELP MENU:')
-        print('-> logs [n]: view the last n-lines of each log file')
         print('-> agents: show all')
-        print('-> abilities: show all')
         print('-> pick [n]: pick an agent by ID to interact with')
+        print('-> logs [n]: view the last n-lines of each log file')
 
     @staticmethod
     async def _print_logs(cmd):
@@ -64,12 +62,7 @@ class Shell:
 
     async def _show_agents(self):
         agents = await self.data_svc.dao.get('core_agent')
-        self.console.table([dict(id=a['id'],
-                                 paw=a['paw'],
-                                 session=next(('Yes' for a in self.session.sessions if a['paw']), 'No'))
-                            for a in agents])
-
-    async def _show_abilities(self):
-        abilities = [dict(id=a['id'], name=a['name'], description=a['description'], platform=a['platform'])
-                     for a in await self.data_svc.dao.get('core_ability')]
-        self.console.table(abilities)
+        await self.console.table([dict(id=a['id'],
+                                       paw=a['paw'],
+                                       session=next(('Yes' for a in self.session.sessions if a['paw']), 'No'))
+                                  for a in agents])
