@@ -1,3 +1,5 @@
+import asyncio
+
 from termcolor import colored
 
 
@@ -12,8 +14,7 @@ class Console:
     def line(self, msg, color='green'):
         self.console_colors[color](msg)
 
-    @staticmethod
-    def table(data):
+    async def table(self, data):
         headers = list(data[0].keys())
         header_list = [headers]
         for item in data:
@@ -21,5 +22,11 @@ class Console:
         column_size = [max(map(len, col)) for col in zip(*header_list)]
         row_format = ' | '.join(['{{:<{}}}'.format(i) for i in column_size])
         header_list.insert(1, ['-' * i for i in column_size])
+        await self._print_table(header_list, row_format)
+
+    """ PRIVATE """
+
+    @staticmethod
+    async def _print_table(header_list, row_format):
         for item in header_list:
             print(row_format.format(*item))

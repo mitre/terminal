@@ -22,6 +22,7 @@ class Agent:
             cmd = await ainput('agent-#%s> ' % host_id)
             commands = {
                 '?': lambda a,_: self._help(),
+                'a': lambda a, _: self._show_abilities(a),
                 'c': lambda a,_: self._new_zero_shell(a),
                 'q': lambda a,c: self._queue_ability(a, c)
             }
@@ -33,8 +34,9 @@ class Agent:
     @staticmethod
     async def _help():
         print('AGENT MODE HELP:')
-        print('-> q: queue an ability for the agent')
+        print('-> a: show abilities this agent can use')
         print('-> c: connect to the agent session')
+        print('-> q: queue an ability for the agent')
 
     async def _new_zero_shell(self, agent):
         try:
@@ -57,3 +59,9 @@ class Agent:
                     cleanup=self.utility_svc.encode_string(cleanup))
         await self.data_svc.dao.create('core_chain', link)
         self.console.line('Ability queued', 'green')
+
+    async def _show_abilities(self, agent):
+        abilities = [dict(id=a['id'], name=a['name'], description=a['description'], tactic=a['technique']['tactic'])
+                     for a in await self.data_svc.explode_abilities(criteria=dict(platform=agent['platform']))]
+        abilities = sorted(abilities, key=lambda i: i['tactic'])
+        await self.console.table(abilities)
