@@ -1,5 +1,4 @@
 import socket
-import random
 
 from plugins.offensive.app.utility.console import Console
 
@@ -15,7 +14,7 @@ class Session:
     async def accept(self, reader, writer):
         connection = writer.get_extra_info('socket')
         paw = await self._gen_paw_print(connection)
-        self.sessions.append(dict(id=random.randint(1000, 10000), paw=paw, connection=connection))
+        self.sessions.append(dict(id=len(self.sessions) + 1, paw=paw, connection=connection))
         self.console.line('New session: %s' % paw)
 
     async def refresh(self):

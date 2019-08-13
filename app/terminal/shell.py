@@ -73,8 +73,9 @@ class Shell:
         agent_id = command.split(' ')[1]
         agent = await self.data_svc.explode_agents(criteria=dict(id=agent_id))
         if agent:
-            abilities = await self.data_svc.explode_abilities(criteria=dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d'))
-
+            abilities = await self.data_svc.explode_abilities(
+                criteria=dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d', platform=agent[0]['platform'])
+            )
             command = await self.planning_svc.decode(abilities[0]['test'], agent[0], group='')
             cleanup = await self.planning_svc.decode(abilities[0].get('cleanup', ''), agent[0], group='')
 
