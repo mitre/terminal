@@ -4,6 +4,7 @@ import random
 
 from pyfiglet import Figlet
 from plugins.offensive.app.terminal.shell import Shell
+from plugins.offensive.app.utility.console import Console
 
 name = 'Offensive'
 description = 'A toolset which turns CALDERA into an offensive package'
@@ -18,6 +19,7 @@ async def initialize(app, services):
     show_welcome_msg()
     terminal = start_terminal(loop, services)
     start_socket_listener(loop, terminal)
+    Console().hint('Enter "help" at any point')
 
 
 def show_welcome_msg():
@@ -35,6 +37,6 @@ def start_terminal(loop, services):
 
 def start_socket_listener(loop, terminal):
     for sock in [5678]:
-        print('...Socket opened on port %s' % sock)
+        print('...Reverse-shell listener opened on port %s' % sock)
         h = asyncio.start_server(terminal.session.accept, '0.0.0.0', sock, loop=loop)
         loop.create_task(h)

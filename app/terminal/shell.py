@@ -1,10 +1,9 @@
 import asyncio
-import glob
-import random
+from datetime import datetime
 
 from aioconsole import ainput
 
-from plugins.offensive.app.terminal.agent import Agent
+from plugins.offensive.app.terminal.zero import Zero
 from plugins.offensive.app.utility.console import Console
 from plugins.offensive.app.utility.session import Session
 
@@ -13,9 +12,10 @@ class Shell:
 
     def __init__(self, services):
         self.data_svc = services.get('data_svc')
-        self.log = services.get('utility_svc').create_logger('terminal')
+        self.utility_svc = services.get('utility_svc')
+        self.planning_svc = services.get('planning_svc')
+        self.log = self.utility_svc.create_logger('terminal')
         self.session = Session(services, self.log)
-        self.agent_shell = Agent(services, self.log, self.session)
         self.prompt = 'caldera> '
         self.console = Console()
 
@@ -24,48 +24,64 @@ class Shell:
         while True:
             try:
                 cmd = await ainput(self.prompt)
-                self.log.debug(cmd)
-                await self.session.refresh()
-
-                commands = {
-                    '?': lambda _: self._help(),
-                    'logs': lambda c: self._print_logs(c),
-                    'agents': lambda _: self._show_agents(),
-                    'pick': lambda c: self._start_agent_shell(cmd)
-                }
-                command = [c for c in commands.keys() if cmd.startswith(c)]
-                await commands[command[0]](cmd)
-            except IndexError:
-                pass
-            except Exception as e:
-                self.console.line('Error: %s' % e, 'red')
+                if cmd:
+                    self.log.debug(cmd)
+                    await self.session.refresh()
+                    commands = {
+                        'help': lambda _: self._help(),
+                        'hosts': lambda _: self._show_hosts(),
+                        'join': lambda c: self._connect_session(cmd),
+                        'new': lambda c: self._new_session(cmd)
+                    }
+                    command = [c for c in commands.keys() if cmd.startswith(c)]
+                    await commands[command[0]](cmd)
+            except Exception:
+                self.console.line('Bad command', 'red')
 
     """ PRIVATE """
 
     @staticmethod
     async def _help():
         print('HELP MENU:')
-        print('-> agents: show all')
-        print('-> pick [n]: pick an agent by ID to interact with')
-        print('-> logs [n]: view the last n-lines of each log file')
+        print('-> hosts: show all connected computers')
+        print('-> new [n]: start a new session on an agent ID')
+        print('-> join [n]: connect to a session by ID')
 
-    @staticmethod
-    async def _print_logs(cmd):
-        n = int(cmd.split(' ')[1])
-        for name in glob.iglob('logs/*.log', recursive=False):
-            with open(name, 'r') as f:
-                print('***** %s ***** ' % name)
-                lines = f.readlines()
-                print(*lines[-n:])
+    async def _show_hosts(self):
+        agents = await self.data_svc.explode_agents()
+        sessions = self.session.sessions
+        hosts = []
+        for paw in set([x['paw'] for x in agents + sessions]):
+            temp_sessions = [s['id'] for s in sessions if s['paw'] == paw]
+            temp_agents = [a['id'] for a in agents if a['paw'] == paw]
+            hosts.append(dict(paw=paw, agents=temp_agents, sessions=temp_sessions))
+        if not hosts:
+            self.console.hint('Deploy 54ndc47 agents to add new hosts')
+        await self.console.table(hosts)
 
-    async def _start_agent_shell(self, cmd):
-        await self.agent_shell.enter(cmd.split(' ')[1])
+    async def _connect_session(self, cmd):
+        session = int(cmd.split(' ')[1])
+        try:
+            conn = next(i['connection'] for i in self.session.sessions if i['id'] == int(session))
+            conn.setblocking(True)
+            conn.send(str.encode(' '))
+            await Zero(session, conn, self.utility_svc).enter()
+        except StopIteration:
+            self.console.line('Session cannot be established with %s' % session, 'red')
 
-    async def _show_agents(self):
-        agents = [dict(id=a['id'], paw=a['paw'], agent=True,
-                       session=next((True for i in self.session.sessions if i['paw'] == a['paw']), False))
-                  for a in await self.data_svc.dao.get('core_agent')]
-        for s in self.session.sessions:
-            if not next((i for i in agents if i['paw'] == s['paw']), False):
-                agents.append(dict(id=random.randint(1000, 2000), paw=s['paw'], agent=False, session=True))
-        await self.console.table(agents)
+    async def _new_session(self, command):
+        agent_id = command.split(' ')[1]
+        agent = await self.data_svc.explode_agents(criteria=dict(id=agent_id))
+        if agent:
+            abilities = await self.data_svc.explode_abilities(criteria=dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d'))
+
+            command = await self.planning_svc.decode(abilities[0]['test'], agent[0], group='')
+            cleanup = await self.planning_svc.decode(abilities[0].get('cleanup', ''), agent[0], group='')
+
+            link = dict(op_id=None, host_id=agent[0]['id'], ability=abilities[0]['id'], jitter=0, score=0,
+                        decide=datetime.now(), command=self.utility_svc.encode_string(command),
+                        cleanup=self.utility_svc.encode_string(cleanup))
+            await self.data_svc.dao.create('core_chain', link)
+            self.console.line('Queued. Waiting for agent to beacon...', 'green')
+        else:
+            self.console.line('No agent with an ID = %s' % agent_id, 'red')
