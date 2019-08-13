@@ -1,4 +1,5 @@
 import socket
+import random
 
 from plugins.offensive.app.utility.console import Console
 
@@ -14,7 +15,7 @@ class Session:
     async def accept(self, reader, writer):
         connection = writer.get_extra_info('socket')
         paw = await self._gen_paw_print(connection)
-        self.sessions.append(dict(paw=paw, connection=connection))
+        self.sessions.append(dict(id=random.randint(1000, 10000), paw=paw, connection=connection))
         self.console.line('New session: %s' % paw)
 
     async def refresh(self):
@@ -23,6 +24,10 @@ class Session:
                 session.get('connection').send(str.encode(' '))
             except socket.error:
                 del self.sessions[index]
+
+    async def has_agent(self, paw):
+        agents = await self.services.get('data_svc').explode_agents()
+        return next((i for i in agents if i['paw'] == paw), False)
 
     @staticmethod
     async def _gen_paw_print(connection):

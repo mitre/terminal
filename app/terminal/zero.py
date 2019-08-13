@@ -6,16 +6,17 @@ from plugins.offensive.app.utility.console import Console
 
 class Zero:
 
-    def __init__(self, paw, conn, utility_svc):
+    def __init__(self, identifier, conn, utility_svc):
         self.conn = conn
-        self.log = utility_svc.create_logger('zero-%s' % paw)
+        self.log = utility_svc.create_logger('zero-%s' % identifier)
         self.console = Console()
 
     async def enter(self):
+        self.console.hint('You can enter "help" here as well')
         while True:
             cmd = await ainput(colored('zero> ', 'magenta'))
             self.log.debug(cmd)
-            if cmd == '?':
+            if cmd == 'help':
                 await self._help()
             elif cmd == 'bg':
                 break
