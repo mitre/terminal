@@ -48,7 +48,7 @@ func main() {
    user, _ := user.Current()
    paw := fmt.Sprintf("%s$%s", host, user.Username)
 
-	server := flag.String("server", "127.0.0.1:5678", "The IP of CALDERA listening post")
+   server := flag.String("server", "127.0.0.1:5678", "The IP of CALDERA listening post")
    flag.Parse()
    
    for {
@@ -63,4 +63,4 @@ func main() {
    }
 }
 
-var key = "N1Q1WG0A7U3S5QVT03NL3US6GKOE6D"
+var key = "MY3DUY6IVC5LN956Q4KUEQEZ2TRQL9"

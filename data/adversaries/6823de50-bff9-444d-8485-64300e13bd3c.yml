@@ -1,8 +1,0 @@
----
-
-id: 6823de50-bff9-444d-8485-64300e13bd3c
-name: Reverse Shell
-description: Implant a reverse shell on the agent
-phases:
-  1:
-    - 356d1722-7784-40c4-822b-0cf864b0b36d
