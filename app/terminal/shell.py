@@ -79,7 +79,7 @@ class Shell:
             command = await self.planning_svc.decode(abilities[0]['test'], agent[0], group='')
             cleanup = await self.planning_svc.decode(abilities[0].get('cleanup', ''), agent[0], group='')
 
-            link = dict(op_id=None, host_id=agent[0]['id'], ability=abilities[0]['id'], jitter=0, score=0,
+            link = dict(op_id=None, paw=agent[0]['paw'], ability=abilities[0]['id'], jitter=0, score=0,
                         decide=datetime.now(), command=self.utility_svc.encode_string(command),
                         cleanup=self.utility_svc.encode_string(cleanup))
             await self.data_svc.dao.create('core_chain', link)
