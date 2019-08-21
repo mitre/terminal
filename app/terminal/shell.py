@@ -12,10 +12,9 @@ class Shell:
 
     def __init__(self, services):
         self.data_svc = services.get('data_svc')
-        self.utility_svc = services.get('utility_svc')
         self.planning_svc = services.get('planning_svc')
-        self.log = self.utility_svc.create_logger('terminal')
-        self.session = Session(services, self.log)
+        self.plugin_svc = services.get('plugin_svc')
+        self.session = Session(services, self.plugin_svc.log)
         self.prompt = 'caldera> '
         self.console = Console()
 
@@ -25,7 +24,7 @@ class Shell:
             try:
                 cmd = await ainput(self.prompt)
                 if cmd:
-                    self.log.debug(cmd)
+                    self.plugin_svc.log.debug(cmd)
                     await self.session.refresh()
                     commands = {
                         'help': lambda _: self._help(),
@@ -65,7 +64,7 @@ class Shell:
             conn = next(i['connection'] for i in self.session.sessions if i['id'] == int(session))
             conn.setblocking(True)
             conn.send(str.encode(' '))
-            await Zero(session, conn, self.utility_svc).enter()
+            await Zero(conn).enter()
         except StopIteration:
             self.console.line('Session cannot be established with %s' % session, 'red')
 
@@ -80,8 +79,8 @@ class Shell:
             cleanup = await self.planning_svc.decode(abilities[0].get('cleanup', ''), agent[0], group='')
 
             link = dict(op_id=None, paw=agent[0]['paw'], ability=abilities[0]['id'], jitter=0, score=0,
-                        decide=datetime.now(), command=self.utility_svc.encode_string(command),
-                        cleanup=self.utility_svc.encode_string(cleanup))
+                        decide=datetime.now(), command=self.plugin_svc.encode_string(command),
+                        cleanup=self.plugin_svc.encode_string(cleanup))
             await self.data_svc.dao.create('core_chain', link)
             self.console.line('Queued. Waiting for agent to beacon...', 'green')
         else:
