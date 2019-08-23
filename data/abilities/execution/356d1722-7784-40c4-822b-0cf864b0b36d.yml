@@ -11,10 +11,10 @@
     darwin:
       sh:
         command: |
-          nohup ./reverse.go-darwin >/dev/null 2>&1 &
+          nohup ./reverse.go-darwin && sleep 3 >/dev/null 2>&1 &
         payload: reverse.go-darwin
     linux:
       sh:
         command: |
-          nohup ./reverse.go-linux >/dev/null 2>&1 &
+          nohup ./reverse.go-linux && sleep 3 >/dev/null 2>&1 &
         payload: reverse.go-linux
