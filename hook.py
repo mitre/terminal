@@ -6,8 +6,8 @@ from pyfiglet import Figlet
 from plugins.terminal.app.terminal.shell import Shell
 from plugins.terminal.app.utility.console import Console
 
-name = 'Offensive'
-description = 'A toolset which turns CALDERA into an offensive package'
+name = 'Terminal'
+description = 'A toolset which supports terminal access'
 address = None
 
 
