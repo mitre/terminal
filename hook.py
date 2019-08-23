@@ -13,7 +13,7 @@ address = None
 
 async def initialize(app, services):
     data_svc = services.get('data_svc')
-    await data_svc.load_data(directory='plugins/offensive/data')
+    await data_svc.load_data(directory='plugins/terminal/data')
     logging.getLogger().setLevel(logging.FATAL)
     loop = asyncio.get_event_loop()
     show_welcome_msg()
