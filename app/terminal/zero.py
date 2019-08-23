@@ -1,7 +1,7 @@
 from aioconsole import ainput
 from termcolor import colored
 
-from plugins.offensive.app.utility.console import Console
+from plugins.terminal.app.utility.console import Console
 
 
 class Zero:

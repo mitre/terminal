@@ -3,8 +3,8 @@ import logging
 import random
 
 from pyfiglet import Figlet
-from plugins.offensive.app.terminal.shell import Shell
-from plugins.offensive.app.utility.console import Console
+from plugins.terminal.app.terminal.shell import Shell
+from plugins.terminal.app.utility.console import Console
 
 name = 'Offensive'
 description = 'A toolset which turns CALDERA into an offensive package'

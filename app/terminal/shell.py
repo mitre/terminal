@@ -3,9 +3,9 @@ from datetime import datetime
 
 from aioconsole import ainput
 
-from plugins.offensive.app.terminal.zero import Zero
-from plugins.offensive.app.utility.console import Console
-from plugins.offensive.app.utility.session import Session
+from plugins.terminal.app.terminal.zero import Zero
+from plugins.terminal.app.utility.console import Console
+from plugins.terminal.app.utility.session import Session
 
 
 class Shell:
