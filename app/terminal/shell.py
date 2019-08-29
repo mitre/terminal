@@ -75,12 +75,15 @@ class Shell:
             abilities = await self.data_svc.explode_abilities(
                 criteria=dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d', platform=agent[0]['platform'])
             )
+            abilities = await self.planning_svc.capable_agent_abilities(abilities, agent[0])
             command = await self.planning_svc.decode(abilities[0]['test'], agent[0], group='')
+            command = command.replace('http://', '')
+            command = command.replace('8888', '5678')
             cleanup = await self.planning_svc.decode(abilities[0].get('cleanup', ''), agent[0], group='')
 
             link = dict(op_id=None, paw=agent[0]['paw'], ability=abilities[0]['id'], jitter=0, score=0,
                         decide=datetime.now(), command=self.plugin_svc.encode_string(command),
-                        cleanup=self.plugin_svc.encode_string(cleanup))
+                        cleanup=self.plugin_svc.encode_string(cleanup), executor=abilities[0]['executor'])
             await self.data_svc.dao.create('core_chain', link)
             self.console.line('Queued. Waiting for agent to beacon...', 'green')
         else:
