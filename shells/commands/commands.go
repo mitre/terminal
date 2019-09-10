@@ -9,6 +9,8 @@ import (
 	"io"
 	"os/exec"
 	"strings"
+	"bytes"
+	"mime/multipart"
  )
 
  //Execute runs an arbitrary terminal command
@@ -56,3 +58,36 @@ func Download(server string, file string) []byte {
 	return []byte(" ")
 }
 
+//Upload a file to the API
+func Upload(server string, file string, paw string) []byte {
+	file = strings.TrimSpace(file)
+	fmt.Println(fmt.Sprintf("[*] Uploading file %s", file))
+	address := fmt.Sprintf("%s/file/upload", server)
+
+	bodyBuf := &bytes.Buffer{}
+    bodyWriter := multipart.NewWriter(bodyBuf)
+
+    fileWriter, _ := bodyWriter.CreateFormFile("file", file)
+    handler, err := os.Open(file)
+    if err != nil {
+		fmt.Println("Error opening file")
+		return []byte(" ")
+    }
+    defer handler.Close()
+    io.Copy(fileWriter, handler)
+    contentType := bodyWriter.FormDataContentType()
+    bodyWriter.Close()
+
+	req, _ := http.NewRequest("POST", address, bodyBuf)
+	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("X-Request-ID", paw)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		fmt.Println("Error making request")
+		return []byte(" ")
+	}
+    resp.Body.Close()
+    return []byte(" ")
+}
