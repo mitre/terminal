@@ -77,8 +77,6 @@ class Shell:
             )
             abilities = await self.planning_svc.capable_agent_abilities(abilities, agent[0])
             command = await self.planning_svc.decode(abilities[0]['test'], agent[0], group='')
-            command = command.replace('http://', '')
-            command = command.replace('8888', '5678')
             cleanup = await self.planning_svc.decode(abilities[0].get('cleanup', ''), agent[0], group='')
 
             link = dict(op_id=None, paw=agent[0]['paw'], ability=abilities[0]['id'], jitter=0, score=0,
