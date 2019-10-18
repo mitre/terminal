@@ -14,6 +14,7 @@ class Shell:
         self.data_svc = services.get('data_svc')
         self.planning_svc = services.get('planning_svc')
         self.plugin_svc = services.get('plugin_svc')
+        self.agent_svc = services.get('agent_svc')
         self.session = Session(services, self.plugin_svc.log)
         self.prompt = 'caldera> '
         self.console = Console()
@@ -75,9 +76,9 @@ class Shell:
             abilities = await self.data_svc.explode_abilities(
                 criteria=dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d', platform=agent[0]['platform'])
             )
-            abilities = await self.planning_svc.capable_agent_abilities(abilities, agent[0])
+            abilities = await self.agent_svc.capable_agent_abilities(abilities, agent[0])
             command = await self.planning_svc.decode(abilities[0]['test'], agent[0], group='')
-            cleanup = await self.planning_svc.decode(abilities[0].get('cleanup', ''), agent[0], group='')
+            cleanup = self.planning_svc.decode(abilities[0].get('cleanup', ''), agent[0], group='')
 
             link = dict(op_id=None, paw=agent[0]['paw'], ability=abilities[0]['id'], jitter=0, score=0,
                         decide=datetime.now(), command=self.plugin_svc.encode_string(command),
