@@ -10,12 +10,12 @@ from plugins.terminal.app.utility.session import Session
 
 class Shell:
 
-    def __init__(self, services):
+    def __init__(self, term_svc, services):
         self.data_svc = services.get('data_svc')
         self.planning_svc = services.get('planning_svc')
         self.plugin_svc = services.get('plugin_svc')
         self.agent_svc = services.get('agent_svc')
-        self.session = Session(services, self.plugin_svc.log)
+        self.session = Session(term_svc, services, self.plugin_svc.log)
         self.prompt = 'caldera> '
         self.console = Console()
 
@@ -35,8 +35,10 @@ class Shell:
                     }
                     command = [c for c in commands.keys() if cmd.startswith(c)]
                     await commands[command[0]](cmd)
-            except Exception:
-                self.console.line('Bad command', 'red')
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.console.line('Bad command {}'.format(e), 'red')
 
     """ PRIVATE """
 
@@ -77,7 +79,7 @@ class Shell:
                 criteria=dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d', platform=agent[0]['platform'])
             )
             abilities = await self.agent_svc.capable_agent_abilities(abilities, agent[0])
-            command = await self.planning_svc.decode(abilities[0]['test'], agent[0], group='')
+            command = self.planning_svc.decode(abilities[0]['test'], agent[0], group='')
             cleanup = self.planning_svc.decode(abilities[0].get('cleanup', ''), agent[0], group='')
 
             link = dict(op_id=None, paw=agent[0]['paw'], ability=abilities[0]['id'], jitter=0, score=0,

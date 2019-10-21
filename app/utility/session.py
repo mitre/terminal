@@ -5,13 +5,18 @@ from plugins.terminal.app.utility.console import Console
 
 class Session:
 
-    def __init__(self, services, log):
-        self.log = log
+    def __init__(self, term_svc, services, log):
+        self.term_svc = term_svc
         self.services = services
+        self.log = log
         self.sessions = []
         self.console = Console()
 
     async def accept(self, reader, writer):
+        if not await self._handshake(reader, writer):
+            self.console.line('Blocked an incoming reverse shell connection from {} because '
+                              'it did not send a known key.\n'.format(writer.get_extra_info('socket').getpeername()))
+            return
         connection = writer.get_extra_info('socket')
         paw = await self._gen_paw_print(connection)
         self.sessions.append(dict(id=len(self.sessions) + 1, paw=paw, connection=connection))
@@ -27,6 +32,13 @@ class Session:
     async def has_agent(self, paw):
         agents = await self.services.get('data_svc').explode_agents()
         return next((i for i in agents if i['paw'] == paw), False)
+
+    async def _handshake(self, reader, writer):
+        client_key_hash = (await reader.read(32))
+        if self.term_svc.validate_key(client_key_hash):
+            return True
+        else:
+            return False
 
     @staticmethod
     async def _gen_paw_print(connection):

@@ -9,6 +9,7 @@ import (
    "os/user"
    "time"
    "flag"
+   "crypto/sha256"
 
    "./commands"
 )
@@ -43,6 +44,12 @@ func listen(conn net.Conn) {
     }
 }
 
+func handshake(conn net.Conn) bool{
+    key_hash := sha256.Sum256([]byte(key))
+    conn.Write(key_hash[:])
+    return true
+}
+
 func main() {
    host, _ := os.Hostname()
    user, _ := user.Current()
@@ -60,6 +67,7 @@ func main() {
          time.Sleep(5 * time.Second)
          continue
       }
+      handshake(conn)
       conn.Write([]byte(paw))
       listen(conn)
    }

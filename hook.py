@@ -3,8 +3,10 @@ import logging
 import random
 
 from pyfiglet import Figlet
+
 from plugins.terminal.app.terminal.shell import Shell
 from plugins.terminal.app.utility.console import Console
+from plugins.terminal.app.term_svc import TermService
 
 name = 'Terminal'
 description = 'A toolset which supports terminal access'
@@ -17,9 +19,13 @@ async def initialize(app, services):
     logging.getLogger().setLevel(logging.FATAL)
     loop = asyncio.get_event_loop()
     show_welcome_msg()
-    terminal = start_terminal(loop, services)
+    term_svc = TermService(services)
+    terminal = start_terminal(loop, term_svc, services)
     start_socket_listener(loop, terminal)
     Console().hint('Enter "help" at any point')
+
+    file_svc = services.get('file_svc')
+    await file_svc.add_special_payload('reverse.go', term_svc.dynamically_compile)
 
 
 def show_welcome_msg():
@@ -29,8 +35,8 @@ def show_welcome_msg():
     print(custom_fig.renderText('caldera'))
 
 
-def start_terminal(loop, services):
-    terminal = Shell(services)
+def start_terminal(loop, term_svc, services):
+    terminal = Shell(term_svc, services)
     loop.create_task(terminal.start())
     return terminal
 
