@@ -35,7 +35,7 @@ class Session:
 
     async def _handshake(self, reader, writer):
         client_key_hash = (await reader.read(32))
-        if self.term_svc.validate_key(client_key_hash):
+        if await self.term_svc.validate_key_hash(client_key_hash):
             return True
         else:
             return False

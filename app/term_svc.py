@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import random
 import string
@@ -9,17 +10,16 @@ class TermService:
     def __init__(self, services, default_key="MY3DUY6IVC5LN956Q4KUEQEZ2TRQL9"):
         self.file_svc = services.get('file_svc')
         self.agent_svc = services.get('agent_svc')
+        self.data_svc = services.get('data_svc')
 
-        # TODO: move to database
-        self._keys_by_hash = dict()
-        self._keys_by_hash[hashlib.sha256(default_key.encode()).digest()] = default_key
+        asyncio.get_event_loop().create_task(self._track_key(default_key))
 
     async def dynamically_compile(self, headers):
         name, platform = headers.get('file'), headers.get('platform')
         if which('go') is not None:
             plugin, file_path = await self.file_svc.find_file_path(name)
 
-            ldflags = ['-s', '-w', '-X main.key=%s' % (self._generate_key(),)]
+            ldflags = ['-s', '-w', '-X main.key=%s' % (await self._generate_key(),)]
             for param in ('defaultServer', 'defaultGroup', 'defaultSleep'):
                 if param in headers:
                     ldflags.append('-X main.%s=%s' % (param, headers[param]))
@@ -31,16 +31,18 @@ class TermService:
 
     """ PRIVATE """
 
-    def _generate_key(self, size=30):
+    async def _generate_key(self, size=30):
         key = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
-        self._track_key(key)
+        await self._track_key(key)
         return key
 
-    def _track_key(self, key):
-        self._keys_by_hash[hashlib.sha256(key.encode()).digest()] = key
+    async def _track_key(self, key):
+        key_hash = hashlib.sha256(key.encode()).hexdigest()
+        return await self.data_svc.create('terminal_key', dict(key_hash=key_hash, key=key))
 
-    def validate_key(self, key_hash):
-        if key_hash in  self._keys_by_hash:
+    async def validate_key_hash(self, key_hash):
+        res = await self.data_svc.get('terminal_key', dict(key_hash=key_hash.hex()))
+        if res:
             return True
         else:
             return False

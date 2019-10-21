@@ -15,7 +15,7 @@ address = None
 
 async def initialize(app, services):
     data_svc = services.get('data_svc')
-    await data_svc.load_data(directory='plugins/terminal/data')
+    await data_svc.load_data(directory='plugins/terminal/data', schema='plugins/terminal/conf/terminal.sql')
     logging.getLogger().setLevel(logging.FATAL)
     loop = asyncio.get_event_loop()
     show_welcome_msg()
