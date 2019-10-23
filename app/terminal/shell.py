@@ -48,7 +48,7 @@ class Shell:
         print('-> join [n]: connect to a session by ID')
 
     async def _show_hosts(self):
-        agents = await self.data_svc.explode('agent')
+        agents = await self.data_svc.locate('agents')
         sessions = self.session.sessions
         hosts = []
         for paw in set([x['paw'] for x in agents + sessions]):
@@ -71,7 +71,7 @@ class Shell:
 
     async def _new_session(self, command):
         agent_id = command.split(' ')[1]
-        agent = await self.data_svc.explode('agent', criteria=dict(id=agent_id))
+        agent = await self.data_svc.locate('agents', match=dict(id=agent_id))
         if agent:
             abilities = await self.data_svc.explode('ability',
                                                     criteria=dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d',
