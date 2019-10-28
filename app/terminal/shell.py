@@ -35,7 +35,7 @@ class Shell:
                     }
                     command = [c for c in commands.keys() if cmd.startswith(c)]
                     await commands[command[0]](cmd)
-            except Exception:
+            except Exception as e:
                 self.console.line('Bad command', 'red')
 
     """ PRIVATE """
@@ -51,9 +51,9 @@ class Shell:
         agents = await self.data_svc.locate('agents')
         sessions = self.session.sessions
         hosts = []
-        for paw in set([x['paw'] for x in agents + sessions]):
-            temp_sessions = [s['id'] for s in sessions if s['paw'] == paw]
-            temp_agents = [a['id'] for a in agents if a['paw'] == paw]
+        for paw in set([x.paw for x in agents + sessions]):
+            temp_sessions = [s['paw'] for s in sessions if s['paw'] == paw]
+            temp_agents = [a.paw for a in agents if a.paw == paw]
             hosts.append(dict(paw=paw, agents=temp_agents, sessions=temp_sessions))
         if not hosts:
             self.console.hint('Deploy 54ndc47 agents to add new hosts')
@@ -71,17 +71,17 @@ class Shell:
 
     async def _new_session(self, command):
         agent_id = command.split(' ')[1]
-        agent = await self.data_svc.locate('agents', match=dict(id=agent_id))
+        agent = await self.data_svc.locate('agents', match=dict(paw=agent_id))
         if agent:
             abilities = await self.data_svc.explode('ability',
                                                     criteria=dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d',
-                                                                  platform=agent[0]['platform'])
+                                                                  platform=agent[0].platform)
                                                     )
             abilities = await self.agent_svc.capable_agent_abilities(abilities, agent[0])
-            command = await self.planning_svc.decode(abilities[0]['test'], agent[0], group='')
+            command = self.planning_svc.decode(abilities[0]['test'], agent[0], group='')
             cleanup = self.planning_svc.decode(abilities[0].get('cleanup', ''), agent[0], group='')
 
-            link = dict(op_id=None, paw=agent[0]['paw'], ability=abilities[0]['id'], jitter=0, score=0,
+            link = dict(op_id=None, paw=agent[0].paw, ability=abilities[0]['id'], jitter=0, score=0,
                         decide=datetime.now(), command=self.plugin_svc.encode_string(command),
                         cleanup=self.plugin_svc.encode_string(cleanup), executor=abilities[0]['executor'])
             await self.data_svc.save('link', link)
