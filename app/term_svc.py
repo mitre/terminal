@@ -11,8 +11,10 @@ class TermService:
         self.file_svc = services.get('file_svc')
         self.agent_svc = services.get('agent_svc')
         self.data_svc = services.get('data_svc')
+        self.used_keys = dict()
 
-        asyncio.get_event_loop().create_task(self._track_key(default_key))
+        default_key_hash = hashlib.sha256(default_key.encode()).hexdigest()
+        self.used_keys[default_key_hash] = default_key
 
     async def dynamically_compile(self, headers):
         name, platform = headers.get('file'), headers.get('platform')
@@ -33,16 +35,12 @@ class TermService:
 
     async def _generate_key(self, size=30):
         key = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(size))
-        await self._track_key(key)
+        key_hash = hashlib.sha256(key.encode()).hexdigest()
+        self.used_keys[key_hash] = key
         return key
 
-    async def _track_key(self, key):
-        key_hash = hashlib.sha256(key.encode()).hexdigest()
-        return await self.data_svc.create('terminal_key', dict(key_hash=key_hash, key=key))
-
     async def validate_key_hash(self, key_hash):
-        res = await self.data_svc.get('terminal_key', dict(key_hash=key_hash.hex()))
-        if res:
+        if key_hash.hex() in self.used_keys:
             return True
         else:
             return False
