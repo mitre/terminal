@@ -30,7 +30,7 @@ class Session:
                 del self.sessions[index]
 
     async def has_agent(self, paw):
-        agents = await self.services.get('data_svc').explode_agents()
+        agents = await self.services.get('data_svc').locate('agents')
         return next((i for i in agents if i['paw'] == paw), False)
 
     async def _handshake(self, reader, writer):
