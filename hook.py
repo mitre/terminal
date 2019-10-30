@@ -3,8 +3,10 @@ import logging
 import random
 
 from pyfiglet import Figlet
+
 from plugins.terminal.app.terminal.shell import Shell
 from plugins.terminal.app.utility.console import Console
+from plugins.terminal.app.term_svc import TermService
 
 name = 'Terminal'
 description = 'A toolset which supports terminal access'
@@ -14,6 +16,8 @@ address = None
 async def initialize(app, services):
     data_svc = services.get('data_svc')
     await data_svc.load_data(directory='plugins/terminal/data')
+    file_svc = services.get('file_svc')
+    await file_svc.add_special_payload('reverse.go', TermService(file_svc).dynamically_compile)
     logging.getLogger().setLevel(logging.FATAL)
     loop = asyncio.get_event_loop()
     show_welcome_msg()
