@@ -14,9 +14,6 @@ class Session:
 
     async def accept(self, reader, writer):
         if not (await self._handshake(reader, writer)):
-            self.console.line(
-                'Blocked an incoming connection from {}\n'.format(writer.get_extra_info('socket').getpeername()))
-            writer.close()
             return
         connection = writer.get_extra_info('socket')
         paw = await self._gen_paw_print(connection)
@@ -36,7 +33,14 @@ class Session:
 
     async def _handshake(self, reader, writer):
         recv_proof = (await reader.readline()).strip()
-        return recv_proof == self.term_svc.terminal_key.encode()
+        if recv_proof == self.term_svc.terminal_key.encode():
+            return True
+        else:
+            self.console.line(
+                'Blocked an incoming connection from {} with incorrect terminal_key value {}\n'.format(
+                    writer.get_extra_info('socket').getpeername(), recv_proof))
+            writer.close()
+            return False
 
     @staticmethod
     async def _gen_paw_print(connection):

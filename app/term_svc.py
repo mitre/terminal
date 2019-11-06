@@ -9,12 +9,14 @@ class TermService:
     def __init__(self, file_svc, default_terminal_key='94699f9970213dd1d4054ca678f1278a'):
         self.file_svc = file_svc
         self.app_svc = file_svc.get_service('app_svc')
+
         if which('go'):
             self.terminal_key = self.app_svc.config.get('terminal_key', default_terminal_key)
+        elif 'terminal_key' in self.app_svc.config:
+            file_svc.log.warning(
+                '[terminal plugin] Unable to locate golang compiler. Custom terminal_key value will not be used.')
+            self.terminal_key = default_terminal_key
         else:
-            if 'terminal_key' in self.app_svc.config:
-                file_svc.log.warning(
-                    '[terminal plugin] Unable to locate golang compiler. Custom terminal_key value will not be used.')
             self.terminal_key = default_terminal_key
 
     async def dynamically_compile(self, headers):
