@@ -63,12 +63,12 @@ func main() {
       conn, err := net.Dial("tcp", *tcp)
       if err != nil {
          fmt.Println(err)
-         time.Sleep(5 * time.Second)
-         continue
-      }
+      }else{
       handshake(conn)
       conn.Write([]byte(paw))
       listen(conn)
+      }
+         time.Sleep(5 * time.Second)
    }
 }
 
