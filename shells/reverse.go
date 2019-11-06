@@ -44,7 +44,8 @@ func listen(conn net.Conn) {
 }
 
 func handshake(conn net.Conn) bool{
-    conn.Write([]byte("94699f9970213dd1d4054ca678f1278a"))
+    conn.Write([]byte(terminal_key))
+    conn.Write([]byte("\n"))
     return true
 }
 
@@ -72,3 +73,4 @@ func main() {
 }
 
 var key = "MY3DUY6IVC5LN956Q4KUEQEZ2TRQL9"
+var terminal_key = "94699f9970213dd1d4054ca678f1278a"
