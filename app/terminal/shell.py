@@ -86,12 +86,12 @@ class Shell:
 
             agents = await self.data_svc.locate('agents', match=dict(group=agent[0].group))
             op = await self.data_svc.store(
-                Operation(op_id=999, name='terminal', adversary=None, agents=agents)
+                Operation(id='1000', name='terminal', adversary=None, agents=agents)
             )
+            op.set_start_details()
             op.add_link(
                 Link(command=self.app_svc.encode_string(command), paw=agent[0].paw, score=0, jitter=0,
-                     ability=abilities[0], operation='terminal',
-                     cleanup=self.app_svc.encode_string(cleanup))
+                     ability=abilities[0], operation=op.id, cleanup=self.app_svc.encode_string(cleanup))
             )
             self.console.line('Queued. Waiting for agent to beacon...', 'green')
         else:
