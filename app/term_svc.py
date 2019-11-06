@@ -8,7 +8,6 @@ class TermService:
 
     def __init__(self, file_svc, terminal_keys):
         self.file_svc = file_svc
-        self.app_svc = file_svc.get_service('app_svc')
         self.terminal_keys = terminal_keys
 
     async def dynamically_compile(self, headers):
