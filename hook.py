@@ -14,10 +14,12 @@ address = None
 
 
 async def initialize(app, services):
+    file_svc = services.get('file_svc')
+    term_svc = TermService(file_svc)
+    services['term_svc'] = term_svc
+    await file_svc.add_special_payload('reverse.go', term_svc.dynamically_compile)
     data_svc = services.get('data_svc')
     await data_svc.load_data(directory='plugins/terminal/data')
-    file_svc = services.get('file_svc')
-    await file_svc.add_special_payload('reverse.go', TermService(file_svc).dynamically_compile)
     logging.getLogger().setLevel(logging.FATAL)
     loop = asyncio.get_event_loop()
     show_welcome_msg()

@@ -9,12 +9,14 @@ class Session:
         self.log = log
         self.services = services
         self.sessions = []
+        self.term_svc = services.get('term_svc')
         self.console = Console()
 
     async def accept(self, reader, writer):
         if not (await self._handshake(reader, writer)):
             self.console.line(
                 'Blocked an incoming connection from {}\n'.format(writer.get_extra_info('socket').getpeername()))
+            writer.close()
             return
         connection = writer.get_extra_info('socket')
         paw = await self._gen_paw_print(connection)
@@ -32,10 +34,9 @@ class Session:
         agents = await self.services.get('data_svc').locate('agents')
         return next((i for i in agents if i['paw'] == paw), False)
 
-    @staticmethod
-    async def _handshake(reader, writer):
-        recv_proof = await reader.read(32)
-        return recv_proof == b'94699f9970213dd1d4054ca678f1278a'
+    async def _handshake(self, reader, writer):
+        recv_proof = (await reader.readline()).strip()
+        return recv_proof == self.term_svc.terminal_key.encode()
 
     @staticmethod
     async def _gen_paw_print(connection):
