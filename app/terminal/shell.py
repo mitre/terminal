@@ -37,7 +37,7 @@ class Shell:
                     }
                     command = [c for c in commands.keys() if cmd.startswith(c)]
                     await commands[command[0]](cmd)
-            except Exception as e:
+            except Exception:
                 self.console.line('Bad command', 'red')
 
     """ PRIVATE """
