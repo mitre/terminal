@@ -64,9 +64,9 @@ func main() {
       if err != nil {
          fmt.Println(err)
       } else {
-      handshake(conn)
-      conn.Write([]byte(paw))
-      listen(conn)
+          handshake(conn)
+          conn.Write([]byte(paw))
+          listen(conn)
       }
       time.Sleep(5 * time.Second)
    }
