@@ -15,7 +15,6 @@ class Shell:
         self.data_svc = services.get('data_svc')
         self.planning_svc = services.get('planning_svc')
         self.app_svc = services.get('app_svc')
-        self.agent_svc = services.get('agent_svc')
         self.session = Session(services, self.app_svc.log)
         self.prompt = 'caldera> '
         self.console = Console()
