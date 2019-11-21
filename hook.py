@@ -12,7 +12,6 @@ from plugins.terminal.app.term_svc import TermService
 name = 'Terminal'
 description = 'A toolset which supports terminal access'
 address = None
-enabled = False
 
 
 async def enable(app, services):
