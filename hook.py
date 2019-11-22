@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import random
 
@@ -33,4 +32,3 @@ def show_welcome_msg():
     new_font = random.choice(custom_fig.getFonts())
     custom_fig.setFont(font=new_font)
     print(custom_fig.renderText('caldera'))
-
