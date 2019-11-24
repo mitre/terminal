@@ -12,7 +12,7 @@ description = 'A toolset which supports terminal access'
 address = None
 
 
-async def enable(app, services):
+async def enable(services):
     with open('plugins/terminal/conf/terminal_conf.yml', 'r') as fle:
         terminal_config = yaml.safe_load(fle)
     terminal_keys = terminal_config.get('terminal_keys')
