@@ -1,7 +1,0 @@
----
-
-id: 6b6c29f9-42de-4497-867a-d78c5a70ab88
-name: TCPSocket
-module: plugins.terminal.app.c2.tcpsocket
-config:
-  port: 5678
