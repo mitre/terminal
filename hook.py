@@ -4,6 +4,7 @@ import random
 import yaml
 from pyfiglet import Figlet
 
+from plugins.terminal.app.tcpsocket import TCPSocket
 from plugins.terminal.app.utility.console import Console
 from plugins.terminal.app.term_svc import TermService
 
@@ -25,6 +26,7 @@ async def enable(services):
     logging.getLogger().setLevel(logging.FATAL)
     show_welcome_msg()
     Console().hint('Enter "help" at any point')
+    await TCPSocket(services).start()
 
 
 def show_welcome_msg():

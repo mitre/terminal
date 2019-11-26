@@ -53,7 +53,7 @@ class Shell:
         print('-> join [n]: connect to a session by ID')
 
     async def _sorted_agent_list(self):
-        return sorted(await self.data_svc.locate('agents'), key=lambda a: a.created)
+        return sorted(await self.data_svc.locate('agents'), key=lambda a: a.last_seen)
 
     async def _show_agents(self):
         hosts = []
