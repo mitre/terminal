@@ -1,9 +1,7 @@
 import asyncio
-import traceback
 
 from aioconsole import ainput
 
-from app.objects.c_link import Link
 from app.objects.c_operation import Operation
 from plugins.terminal.app.terminal.zero import Zero
 from plugins.terminal.app.utility.console import Console
@@ -16,7 +14,7 @@ class Shell:
         self.data_svc = services.get('data_svc')
         self.planning_svc = services.get('planning_svc')
         self.app_svc = services.get('app_svc')
-        self.session = Session(services, self.app_svc.log)
+        self.session = Session(services)
         self.prompt = 'caldera> '
         self.console = Console()
 
@@ -38,8 +36,6 @@ class Shell:
                     command = [c for c in commands.keys() if cmd.startswith(c)]
                     await commands[command[0]](cmd)
             except Exception as e:
-                if self.app_svc.config.get('debug'):
-                    traceback.print_exc()
                 self.console.line('Bad command {}'.format(e), 'red')
 
     """ PRIVATE """
@@ -64,7 +60,7 @@ class Shell:
         await self.console.table(hosts)
 
     async def _show_sessions(self):
-        await self.console.table(self.session.sessions)
+        await self.console.table([dict(idx=s['id'], paw=s['paw']) for s in self.session.sessions])
 
     async def _connect_session(self, cmd):
         session = int(cmd.split(' ')[1])
@@ -80,24 +76,16 @@ class Shell:
         agent_idx = int(command.split(' ')[1])
         agent = (await self._sorted_agent_list())[agent_idx]
         if agent:
-            match = dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d', platform=agent.platform)
-            abilities = await self.data_svc.locate('abilities', match=match)
-            abilities = await agent.capabilities(abilities)
-            command = self.planning_svc.decode(abilities[0].test, agent, group='')
-            if abilities[0].cleanup:
-                cleanup = self.planning_svc.decode(abilities[0].cleanup, agent, group='')
-            else:
-                cleanup = ''
-
+            adv = await self.data_svc.locate('adversaries', match=dict(adversary_id='56aebecf-abca-40c1-ad24-658e7c25b55b'))
+            planner = await self.data_svc.locate('planners')
             agents = await self.data_svc.locate('agents', match=dict(group=agent.group))
             op = await self.data_svc.store(
-                Operation(id='1000', name='terminal', adversary=None, agents=agents)
+                Operation(id='1000', name='terminal', adversary=adv[0], agents=agents, planner=planner[0],
+                          state='running')
             )
             op.set_start_details()
-            op.add_link(
-                Link(command=self.app_svc.encode_string(command), paw=agent.paw, score=0, jitter=0,
-                     ability=abilities[0], operation=op.id, cleanup=self.app_svc.encode_string(cleanup))
-            )
+            loop = asyncio.get_event_loop()
+            loop.create_task(self.app_svc.run_operation(op))
             self.console.line('Queued. Waiting for agent to beacon...', 'green')
         else:
             self.console.line('No agent found for idx = %s.' % agent_idx, 'red')
