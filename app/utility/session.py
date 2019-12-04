@@ -5,8 +5,7 @@ from plugins.terminal.app.utility.console import Console
 
 class Session:
 
-    def __init__(self, services, log):
-        self.log = log
+    def __init__(self, services):
         self.services = services
         self.sessions = []
         self.term_svc = services.get('term_svc')
@@ -48,13 +47,12 @@ class Session:
             writer.close()
             return False
 
-    @staticmethod
-    async def _gen_paw_print(connection):
+    async def _gen_paw_print(self, connection):
         paw = ''
         while True:
             try:
                 data = str(connection.recv(1), 'utf-8')
                 paw += data
             except BlockingIOError:
-                break
-        return paw
+                pass
+            return paw
