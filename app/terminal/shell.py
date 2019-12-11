@@ -54,7 +54,7 @@ class Shell:
     async def _show_agents(self):
         hosts = []
         for i, a in enumerate(await self._sorted_agent_list()):
-            hosts.append(dict(idx=str(i), host=a.host, user=a.username, priv=a.privilege, paw=a.paw))
+            hosts.append(dict(idx=str(i), host=a.host, user=a.username, priv=a.privilege, paw=a.paw, trusted=a.trusted))
         if not hosts:
             self.console.hint('Deploy 54ndc47 agents to add new hosts')
         await self.console.table(hosts)
