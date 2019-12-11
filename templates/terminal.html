@@ -1,0 +1,47 @@
+<script src="/gui/js/shared.js"></script>
+<html>
+    <head>
+        <title>Terminal | Options</title>
+        <link rel="shortcut icon" type="image/png" href="/gui/img/favicon.png"/>
+        <link rel="stylesheet" href="/gui/css/shared.css">
+        <link rel="stylesheet" href="/gui/css/navbar.css">
+        <link rel="stylesheet" href="/gui/css/basic.css">
+        <link rel="stylesheet" href="/gui/css/modal.css">
+    </head>
+    <body>
+    <div class="navbar">
+        <a href="/">Home</a>
+        <a href="/logout" style="float:right">Logout</a>
+    </div>
+    <center style="margin-bottom: 100px">
+        <div>
+            <div id="sandcat-blocks" class="row-canvas">
+                <div class="section-profile">
+                    <div class="row">
+                        <div class="column section-border" style="flex:37%;text-align:left;padding:15px;">
+                            <h1 style="font-size:70px;margin-top:-20px;">Terminal</h1>
+                            <h2 style="margin-top:-55px">managing reverse-shells</h2>
+                            <p>
+                                The terminal plugin gives you the power of reverse-shells
+                            </p>
+                        </div>
+                        <div class="column" style="flex:67%;padding:15px;text-align: left">
+                            <table class="display" border=1 frame=void rules=rows style="width:100%;text-align:left;">
+                                <tbody>
+                                    {% for s in sessions %}
+                                        <tr>
+                                            <td>{{ s }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        </center>
+    </body>
+    <script src="/gui/jquery/jquery.js"></script>
+</html>

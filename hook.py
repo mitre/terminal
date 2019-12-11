@@ -10,7 +10,7 @@ from plugins.terminal.app.term_svc import TermService
 
 name = 'Terminal'
 description = 'A toolset which supports terminal access'
-address = None
+address = '/plugin/terminal/gui'
 
 
 async def enable(services):
@@ -18,12 +18,14 @@ async def enable(services):
         terminal_config = yaml.safe_load(fle)
     terminal_keys = terminal_config.get('terminal_keys')
     file_svc = services.get('file_svc')
-    term_svc = TermService(file_svc, terminal_keys)
+    term_svc = TermService(services, terminal_keys)
     services['term_svc'] = term_svc
     await file_svc.add_special_payload('reverse.go', term_svc.dynamically_compile)
     data_svc = services.get('data_svc')
     await data_svc.load_data(directory='plugins/terminal/data')
-    logging.getLogger().setLevel(logging.FATAL)
+    services.get('app_svc').application.router.add_route('GET', '/plugin/terminal/gui', term_svc.splash)
+
+    #logging.getLogger().setLevel(logging.FATAL)
     show_welcome_msg()
     Console().hint('Enter "help" at any point')
     await TCPSocket(services).start()
