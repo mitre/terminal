@@ -16,9 +16,9 @@ class Session:
         if not (await self._handshake(reader, writer)):
             return
         connection = writer.get_extra_info('socket')
-        paw = await self._gen_paw_print(connection)
-        self.sessions.append(dict(id=len(self.sessions) + 1, paw=paw, connection=connection))
-        self.console.line('New session: %s' % paw)
+        shell_info = await self._get_shell_info(reader)
+        self.sessions.append(dict(id=len(self.sessions) + 1, paw=shell_info, connection=connection))
+        self.console.line('New session: %s' % shell_info)
 
     async def refresh(self):
         for index, session in enumerate(self.sessions):
@@ -47,12 +47,6 @@ class Session:
             writer.close()
             return False
 
-    async def _gen_paw_print(self, connection):
-        paw = ''
-        while True:
-            try:
-                data = str(connection.recv(1), 'utf-8')
-                paw += data
-            except BlockingIOError:
-                pass
-            return paw
+    async def _get_shell_info(self, reader):
+        x = (await reader.readline()).strip().decode()
+        return x
