@@ -32,10 +32,6 @@ class Session:
             except socket.error:
                 del self.sessions[index]
 
-    async def has_agent(self, shell_info):
-        agents = await self.services.get('data_svc').locate('agents')
-        return next((i for i in agents if i['paw'] == shell_info), False)
-
     async def _handshake(self, reader, writer):
         recv_proof = (await reader.readline()).strip()
         remote_socket = writer.get_extra_info('socket').getpeername()
