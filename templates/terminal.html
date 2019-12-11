@@ -30,7 +30,8 @@
                                 <tbody>
                                     {% for s in sessions %}
                                         <tr>
-                                            <td>{{ s }}</td>
+                                            <td onclick="openSession({{ s.id }})">{{ s.id }}</td>
+                                            <td>{{ s.connection }}</td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
@@ -44,4 +45,16 @@
         </center>
     </body>
     <script src="/gui/jquery/jquery.js"></script>
+    <script>
+        function openSession(i) {
+            $.ajax({
+               url: '/plugin/terminal/session',
+               type: 'PUT',
+               contentType: 'application/json',
+               data: JSON.stringify({'id': i}),
+               success: function(data, status, options) { callback(data); },
+               error: function (xhr, ajaxOptions, thrownError) { console.log(thrownError) }
+            });
+        }
+    </script>
 </html>

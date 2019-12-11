@@ -1,11 +1,5 @@
-import logging
-import random
-
 import yaml
-from pyfiglet import Figlet
 
-from plugins.terminal.app.tcpsocket import TCPSocket
-from plugins.terminal.app.utility.console import Console
 from plugins.terminal.app.term_svc import TermService
 
 name = 'Terminal'
@@ -20,19 +14,12 @@ async def enable(services):
     file_svc = services.get('file_svc')
     term_svc = TermService(services, terminal_keys)
     services['term_svc'] = term_svc
+    await term_svc.set_session()
+    await term_svc.start_socket_listener()
+
     await file_svc.add_special_payload('reverse.go', term_svc.dynamically_compile)
     data_svc = services.get('data_svc')
     await data_svc.load_data(directory='plugins/terminal/data')
     services.get('app_svc').application.router.add_route('GET', '/plugin/terminal/gui', term_svc.splash)
+    services.get('app_svc').application.router.add_route('PUT', '/plugin/terminal/session', term_svc.pop_box)
 
-    #logging.getLogger().setLevel(logging.FATAL)
-    show_welcome_msg()
-    Console().hint('Enter "help" at any point')
-    await TCPSocket(services).start()
-
-
-def show_welcome_msg():
-    custom_fig = Figlet(font='contrast')
-    new_font = random.choice(custom_fig.getFonts())
-    custom_fig.setFont(font=new_font)
-    print(custom_fig.renderText('caldera'))
