@@ -22,7 +22,7 @@ class Session:
         except ShellHandshakeFailure:
             return
         connection = writer.get_extra_info('socket')
-        self.sessions.append(dict(id=len(self.sessions) + 1, paw=shell_info, connection=connection))
+        self.sessions.append(dict(id=len(self.sessions) + 1, shell_info=shell_info, connection=connection))
         self.console.line('New session: %s' % shell_info)
 
     async def refresh(self):
@@ -32,9 +32,9 @@ class Session:
             except socket.error:
                 del self.sessions[index]
 
-    async def has_agent(self, paw):
+    async def has_agent(self, shell_info):
         agents = await self.services.get('data_svc').locate('agents')
-        return next((i for i in agents if i['paw'] == paw), False)
+        return next((i for i in agents if i['paw'] == shell_info), False)
 
     async def _handshake(self, reader, writer):
         recv_proof = (await reader.readline()).strip()

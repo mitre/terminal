@@ -60,7 +60,7 @@ class Shell:
         await self.console.table(hosts)
 
     async def _show_sessions(self):
-        await self.console.table([dict(idx=s['id'], paw=s['paw']) for s in self.session.sessions])
+        await self.console.table([dict(idx=s['id'], shell_info=s['shell_info']) for s in self.session.sessions])
 
     async def _connect_session(self, cmd):
         session = int(cmd.split(' ')[1])
