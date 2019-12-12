@@ -20,7 +20,7 @@ class TermService:
             output = 'plugins/%s/payloads/%s-%s' % (plugin, name, platform)
             self.file_svc.log.debug('Dynamically compiling %s' % name)
             await self.file_svc.compile_go(platform, output, file_path, ldflags=' '.join(ldflags))
-        return '%s-%s' % (name, platform)
+        return '%s-%s' % (name, platform), '%s-%s' % (name, platform)
 
     """ PRIVATE """
 
