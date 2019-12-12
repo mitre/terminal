@@ -22,4 +22,3 @@ async def enable(services):
     await data_svc.load_data(directory='plugins/terminal/data')
     services.get('app_svc').application.router.add_route('GET', '/plugin/terminal/gui', term_svc.splash)
     services.get('app_svc').application.router.add_route('PUT', '/plugin/terminal/session', term_svc.pop_box)
-
