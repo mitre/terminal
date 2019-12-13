@@ -6,8 +6,8 @@ from shutil import which
 
 class TermService:
 
-    def __init__(self, file_svc, terminal_keys):
-        self.file_svc = file_svc
+    def __init__(self, services, terminal_keys):
+        self.file_svc = services.get('file_svc')
         self.terminal_keys = terminal_keys
 
     async def dynamically_compile(self, headers):
