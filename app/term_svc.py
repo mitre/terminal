@@ -3,8 +3,6 @@ import string
 
 from shutil import which
 
-from aiohttp_jinja2 import template
-
 
 class TermService:
 
@@ -12,11 +10,6 @@ class TermService:
         self.file_svc = services.get('file_svc')
         self.auth_svc = services.get('auth_svc')
         self.terminal_keys = terminal_keys
-
-    @template('terminal.html')
-    async def splash(self, request):
-        await self.auth_svc.check_permissions(request)
-        return dict(sessions=[1,1,2,2,3,4])
 
     async def dynamically_compile(self, headers):
         name, platform = headers.get('file'), headers.get('platform')
