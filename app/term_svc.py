@@ -8,7 +8,6 @@ class TermService:
 
     def __init__(self, services, terminal_keys):
         self.file_svc = services.get('file_svc')
-        self.auth_svc = services.get('auth_svc')
         self.terminal_keys = terminal_keys
 
     async def dynamically_compile(self, headers):
@@ -21,7 +20,7 @@ class TermService:
             output = 'plugins/%s/payloads/%s-%s' % (plugin, name, platform)
             self.file_svc.log.debug('Dynamically compiling %s' % name)
             await self.file_svc.compile_go(platform, output, file_path, ldflags=' '.join(ldflags))
-        return '%s-%s' % (name, platform)
+        return '%s-%s' % (name, platform), '%s-%s' % (name, platform)
 
     """ PRIVATE """
 
