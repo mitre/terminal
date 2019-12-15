@@ -1,17 +1,13 @@
 from aioconsole import ainput
 from termcolor import colored
 
-from plugins.terminal.app.utility.console import Console
-
 
 class Zero:
 
     def __init__(self, conn):
         self.conn = conn
-        self.console = Console()
 
     async def enter(self):
-        self.console.hint('You can enter "help" here as well')
         while True:
             cmd = await ainput(colored('zero> ', 'magenta'))
             if cmd == 'help':
