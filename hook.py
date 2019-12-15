@@ -1,37 +1,30 @@
+import asyncio
 import logging
-import random
 
 import yaml
-from pyfiglet import Figlet
+import websockets
 
-from plugins.terminal.app.tcpsocket import TCPSocket
-from plugins.terminal.app.utility.console import Console
 from plugins.terminal.app.term_svc import TermService
 
 name = 'Terminal'
 description = 'A toolset which supports terminal access'
-address = None
+address = '/plugin/terminal/gui'
 
 
 async def enable(services):
     with open('plugins/terminal/conf/terminal_conf.yml', 'r') as fle:
         terminal_config = yaml.safe_load(fle)
     terminal_keys = terminal_config.get('terminal_keys')
-    file_svc = services.get('file_svc')
     term_svc = TermService(services, terminal_keys)
-    services['term_svc'] = term_svc
-    await file_svc.add_special_payload('reverse.go', term_svc.dynamically_compile)
-    data_svc = services.get('data_svc')
-    await data_svc.load_data(directory='plugins/terminal/data')
+    await term_svc.start_socket_listener()
+    services.get('app_svc').application.router.add_route('GET', '/plugin/terminal/gui', term_svc.splash)
 
-    logging.getLogger().setLevel(logging.FATAL)
-    show_welcome_msg()
-    Console().hint('Enter "help" at any point')
-    await TCPSocket(services).start()
+    await services.get('file_svc').add_special_payload('reverse.go', term_svc.dynamically_compile)
+    await services.get('data_svc').load_data(directory='plugins/terminal/data')
+
+    logging.getLogger('websockets').setLevel(logging.FATAL)
+    asyncio.get_event_loop().create_task(start_server(term_svc))
 
 
-def show_welcome_msg():
-    custom_fig = Figlet(font='contrast')
-    new_font = random.choice(custom_fig.getFonts())
-    custom_fig.setFont(font=new_font)
-    print(custom_fig.renderText('caldera'))
+async def start_server(term_svc):
+    await websockets.serve(term_svc.socket_handler, 'localhost', 8765)
