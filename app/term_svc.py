@@ -19,7 +19,8 @@ class TermService(BaseService):
     @template('terminal.html')
     async def splash(self, request):
         await self.services.get('auth_svc').check_permissions(request)
-        return dict(sessions=[dict(id=s['id'], connection=s['connection']) for s in self.handler.sessions])
+        await self.handler.refresh()
+        return dict(sessions=[dict(id=s['id'], info=s['shell_info']) for s in self.handler.sessions])
 
     async def start_socket_listener(self):
         loop = asyncio.get_event_loop()
@@ -40,10 +41,13 @@ class TermService(BaseService):
         return '%s-%s' % (name, platform), '%s-%s' % (name, platform)
 
     async def socket_handler(self, socket, path):
-        session_id = path.split('/')[1]
-        cmd = await socket.recv()
-        reply = await self.handler.send(session_id, cmd)
-        await socket.send(reply.strip())
+        try:
+            session_id = path.split('/')[1]
+            cmd = await socket.recv()
+            reply = await self.handler.send(session_id, cmd)
+            await socket.send(reply.strip())
+        except Exception:
+            await socket.send('CONNECTION LOST!')
 
     """ PRIVATE """
 

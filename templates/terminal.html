@@ -24,14 +24,14 @@
                              <p>
                                  The terminal plugin gives you the power of reverse-shells. Through these shells you
                                  can manually interact with any host. Deploy a reverse-shell
-                                 by running the Terminal adversary - using terminal facts - against any of your agents.
+                                 by running the Terminal adversary - using the terminal fact source - against any of your agents.
                                  This will drop and start a raw TCP reverse-shell in the background.
                              </p>
                              <br>
                              <select id="session-id">
                                <option value="" disabled selected>Select a session</option>
                                {% for s in sessions %}
-                                   <option value="{{ s.id }}">{{ s.id }}</option>
+                                   <option value="{{ s.id }}">{{ s.id }} - {{ s.info }}</option>
                                {% endfor %}}
                              </select>
                          </div>
@@ -40,12 +40,10 @@
                              <input id="session-cmd" type="text" placeholder="enter a command"/>
                              <textarea id="session-reply" placeholder="response will show up here"></textarea>
                              <br>
-                             <center>
-                                 <button type="button" class="button-success atomic-button"
-                                         style="width:25%" onclick="sendCommand()">
-                                      Send
-                                 </button>
-                             </center>
+                             <button type="button" class="button-success atomic-button"
+                                     style="width:25%" onclick="sendCommand()">
+                                  Send
+                             </button>
                          </div>
                      </div>
                  </div>
