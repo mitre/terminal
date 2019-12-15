@@ -1,3 +1,10 @@
+import socket
+
+
+class ShellHandshakeFailure(ConnectionError):
+    pass
+
+
 class SessionHandler:
 
     def __init__(self, terminal_keys):
@@ -5,12 +12,20 @@ class SessionHandler:
         self.sessions = []
         self.seen_ips = set()
 
+    async def refresh(self):
+        for index, session in enumerate(self.sessions):
+            try:
+                session.get('connection').send(str.encode(' '))
+            except socket.error:
+                del self.sessions[index]
+
     async def accept(self, reader, writer):
-        if not (await self._handshake(reader, writer)):
+        try:
+            shell_info = await self._handshake(reader, writer)
+        except ShellHandshakeFailure:
             return
         connection = writer.get_extra_info('socket')
-        paw = await self._gen_paw_print(connection)
-        self.sessions.append(dict(id=len(self.sessions) + 1, paw=paw, connection=connection))
+        self.sessions.append(dict(id=len(self.sessions) + 1, shell_info=shell_info, connection=connection))
 
     async def send(self, session_id, cmd):
         conn = next(i['connection'] for i in self.sessions if i['id'] == int(session_id))
@@ -26,22 +41,11 @@ class SessionHandler:
         recv_proof = (await reader.readline()).strip()
         remote_socket = writer.get_extra_info('socket').getpeername()
         if recv_proof.decode() in self.terminal_keys:
-            return True
+            return (await reader.readline()).strip().decode()
         elif remote_socket[0] in self.seen_ips:
             writer.close()
-            return False
+            raise ShellHandshakeFailure
         else:
             self.seen_ips.add(remote_socket[0])
             writer.close()
-            return False
-
-    @staticmethod
-    async def _gen_paw_print(connection):
-        paw = ''
-        while True:
-            try:
-                data = str(connection.recv(1), 'utf-8')
-                paw += data
-            except BlockingIOError:
-                pass
-            return paw
+            raise ShellHandshakeFailure
