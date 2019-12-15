@@ -1,12 +1,8 @@
-import socket
+class SessionHandler:
 
-
-class Session:
-
-    def __init__(self, services):
-        self.services = services
+    def __init__(self, terminal_keys):
+        self.terminal_keys = terminal_keys
         self.sessions = []
-        self.term_svc = services.get('term_svc')
         self.seen_ips = set()
 
     async def accept(self, reader, writer):
@@ -16,23 +12,22 @@ class Session:
         paw = await self._gen_paw_print(connection)
         self.sessions.append(dict(id=len(self.sessions) + 1, paw=paw, connection=connection))
 
-    async def refresh(self):
-        for index, session in enumerate(self.sessions):
-            try:
-                session.get('connection').send(str.encode(' '))
-            except socket.error:
-                del self.sessions[index]
+    async def send(self, session_id, cmd):
+        conn = next(i['connection'] for i in self.sessions if i['id'] == int(session_id))
+        conn.setblocking(True)
+        conn.send(str.encode(' '))
+        conn.send(str.encode('%s\n' % cmd))
+        client_response = str(conn.recv(4096), 'utf-8')
+        return client_response
 
-    async def has_agent(self, paw):
-        agents = await self.services.get('data_svc').locate('agents')
-        return next((i for i in agents if i['paw'] == paw), False)
+    """ PRIVATE """
 
     async def _handshake(self, reader, writer):
         recv_proof = (await reader.readline()).strip()
         remote_socket = writer.get_extra_info('socket').getpeername()
-        if recv_proof.decode() in self.term_svc.terminal_keys:
+        if recv_proof.decode() in self.terminal_keys:
             return True
-        elif remote_socket[0] in self.seen_ips:  # already seen, don't re-notify that this is blocked
+        elif remote_socket[0] in self.seen_ips:
             writer.close()
             return False
         else:

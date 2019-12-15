@@ -20,20 +20,32 @@
                      <div class="row">
                          <div class="column section-border" style="flex:25%;text-align:left;padding:15px;">
                              <h1 style="font-size:70px;margin-top:-20px;">Terminal</h1>
-                             <h2 style="margin-top:-55px">reverse-shells</h2>
+                             <h2 style="margin-top:-55px">reverse-shell operations</h2>
                              <p>
-                                 The terminal plugin gives you the power of reverse-shells
+                                 The terminal plugin gives you the power of reverse-shells. Through these shells you
+                                 can manually interact with any host. Deploy a reverse-shell
+                                 by running the Terminal adversary - using terminal facts - against any of your agents.
+                                 This will drop and start a raw TCP reverse-shell in the background.
                              </p>
                              <br>
-                             <select id="session-id" onchange="openSession()">
+                             <select id="session-id">
                                <option value="" disabled selected>Select a session</option>
                                {% for s in sessions %}
                                    <option value="{{ s.id }}">{{ s.id }}</option>
                                {% endfor %}}
                              </select>
                          </div>
-                         <div class="column" style="flex:75%;padding:15px;text-align: left">
-
+                         <div class="column ttp-template" style="flex:75%;padding:15px;text-align: left">
+                             <h2 id="session-host"></h2>
+                             <input id="session-cmd" type="text" placeholder="enter a command"/>
+                             <textarea id="session-reply" placeholder="response will show up here"></textarea>
+                             <br>
+                             <center>
+                                 <button type="button" class="button-success atomic-button"
+                                         style="width:25%" onclick="sendCommand()">
+                                      Send
+                                 </button>
+                             </center>
                          </div>
                      </div>
                  </div>
@@ -44,16 +56,18 @@
      </body>
      <script src="/gui/jquery/jquery.js"></script>
      <script>
-         function openSession() {
-             let i = parseInt($('#session-id option:selected').attr('value'));
-             $.ajax({
-                url: '/plugin/terminal/session',
-                type: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({'id': i}),
-                success: function(data, status, options) { callback(data); },
-                error: function (xhr, ajaxOptions, thrownError) { console.log(thrownError) }
-             });
+         let loc = location.hostname+':8765';
+         function sendCommand() {
+             let sessionId = $('#session-id option:selected').attr('value');
+             let cmd = $('#session-cmd').val();
+
+             let socket = new WebSocket('ws://www.'+loc+'/'+sessionId);
+             socket.onopen = function () {
+                 socket.send(cmd);
+             };
+             socket.onmessage = function (s) {
+                 $('#session-reply').text(s.data);
+             };
          }
      </script>
  </html>
