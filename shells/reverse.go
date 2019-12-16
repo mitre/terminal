@@ -38,7 +38,7 @@ func listen(conn net.Conn) {
    scanner := bufio.NewScanner(conn)
     for scanner.Scan() {
        message := scanner.Text()
-       bites := runNextCommand(message)
+       bites := runNextCommand(strings.TrimSpace(message))
        conn.Write(bites)
     }
 }
