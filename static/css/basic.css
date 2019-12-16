@@ -1,0 +1,18 @@
+.terminal {
+    border-radius: 10px;
+    background-color: var(--primary-background);
+}
+.terminal p,h2 {
+    color: white;
+}
+.terminal td {
+    color: white;
+}
+.terminal textarea {
+    margin: 20px;
+    height: 300px;
+    width: 95%;
+}
+.session-select {
+    width: 25%;
+}
