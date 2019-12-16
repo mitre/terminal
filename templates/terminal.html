@@ -18,7 +18,7 @@
          <div class="row-canvas">
             <div class="section-profile">
                 <div class="row">
-                    <div class="topright duk-icon"><img onclick="openDuk1()" src="/gui/img/duk.png"></div>
+                    <div class="topright duk-icon"><img onclick="openLocalDuk()" src="/gui/img/duk.png"></div>
 
                     <div class="column section-border" style="flex:25%;text-align:left;padding:15px;">
                          <h1 style="font-size:70px;margin-top:-20px;">Terminal</h1>
@@ -47,7 +47,7 @@
         <div class="row-canvas">
             <div class="section-profile">
                 <div class="row">
-                     <div class="topright duk-icon"><img onclick="openLocalDuk()" src="/gui/img/duk.png"></div>
+                     <div class="topright duk-icon"><img onclick="openLocalDuk2()" src="/gui/img/duk.png"></div>
 
                      <div class="column" style="flex:100%;padding:15px;text-align: left">
                          <div class="session-select">
@@ -134,9 +134,15 @@
 
          function openLocalDuk() {
              document.getElementById("duk-modal").style.display="block";
-            $('#duk-text').text('Did you know... you can deploy a new reverse-shell by running an operation using ' +
+            $('#duk-text').text('Did you know... you can also deploy a new reverse-shell by running an operation using ' +
                 'the terminal adversary. Make sure you also use the terminal facts, which contain the location of the ' +
                 'TCP socket. You will need to update this value if you are running anywhere but localhost.');
+         }
+
+         function openLocalDuk2() {
+             document.getElementById("duk-modal").style.display="block";
+            $('#duk-text').text('Did you know... there are a handful of special commands you can run in a session. ' +
+                'Check the documentation for a full list.');
          }
      </script>
  </html>
