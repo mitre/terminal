@@ -38,7 +38,7 @@ class TermService(BaseService):
             output = 'plugins/%s/payloads/%s-%s' % (plugin, name, platform)
             self.log.debug('Dynamically compiling %s' % name)
             await self.services.get('file_svc').compile_go(platform, output, file_path, ldflags=' '.join(ldflags))
-        return '%s-%s' % (name, platform), '%s-%s' % (name, platform)
+        return '%s-%s' % (name, platform), self.generate_name(10)
 
     async def socket_handler(self, socket, path):
         try:
