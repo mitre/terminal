@@ -1,4 +1,5 @@
 import socket
+import time
 
 
 class ShellHandshakeFailure(ConnectionError):
@@ -29,10 +30,9 @@ class SessionHandler:
 
     async def send(self, session_id, cmd):
         conn = next(i['connection'] for i in self.sessions if i['id'] == int(session_id))
-        conn.setblocking(True)
         conn.send(str.encode(' '))
         conn.send(str.encode('%s\n' % cmd))
-        client_response = str(conn.recv(4096), 'utf-8')
+        client_response = await self._attempt_connection(conn, 100)
         return client_response
 
     """ PRIVATE """
@@ -49,3 +49,17 @@ class SessionHandler:
             self.seen_ips.add(remote_socket[0])
             writer.close()
             raise ShellHandshakeFailure
+
+    @staticmethod
+    async def _attempt_connection(connection, max_tries):
+        attempts = 0
+        client_response = None
+        while not client_response:
+            try:
+                client_response = str(connection.recv(4096), 'utf-8')
+            except BlockingIOError as err:
+                if attempts > max_tries:
+                    raise err
+                attempts += 1
+                time.sleep(.1 * attempts)
+        return client_response
