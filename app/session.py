@@ -33,7 +33,6 @@ class SessionHandler:
         conn.send(str.encode(' '))
         conn.send(str.encode('%s\n' % cmd))
         client_response = await self._attempt_connection(conn, 100)
-
         return client_response
 
     """ PRIVATE """
@@ -51,7 +50,8 @@ class SessionHandler:
             writer.close()
             raise ShellHandshakeFailure
 
-    async def _attempt_connection(self, connection, max_tries):
+    @staticmethod
+    async def _attempt_connection(connection, max_tries):
         attempts = 0
         client_response = None
         while not client_response:
@@ -62,5 +62,4 @@ class SessionHandler:
                     raise err
                 attempts += 1
                 time.sleep(.1 * attempts)
-
         return client_response
