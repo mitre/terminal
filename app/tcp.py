@@ -32,7 +32,7 @@ class Tcp(BaseWorld):
                         instruction = json.loads(i)
                         paw, response = await self.handler.send(session.id, self.decode_bytes(instruction['command']))
                         await self.contact_svc.save_results(id=instruction['id'], output=self.encode_string(response), status=0, pid=0)
-                await asyncio.sleep(20)
+                await asyncio.sleep(60)
         except Exception as e:
             print('TCP operation loop hit an error: %s' % e)
 
