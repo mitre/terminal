@@ -57,7 +57,10 @@ class SessionHandler(BaseWorld):
             return
         connection = writer.get_extra_info('socket')
         parts = profile.split('$')
-        structured_profile = dict(paw=self.generate_name(size=6), host=parts[0], username=parts[1], platform=parts[2])
+        structured_profile = dict(
+            paw=self.generate_name(size=6), host=parts[0], username=parts[1], platform=parts[2],
+            architecture=parts[3], executors=parts[4].split(',')
+        )
         agent = await self.services.get('contact_svc').handle_heartbeat(**structured_profile)
         new_session = Session(id=len(self.sessions) + 1, paw=agent.paw, connection=connection)
         self.sessions.append(new_session)
