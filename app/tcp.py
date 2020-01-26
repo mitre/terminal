@@ -3,6 +3,7 @@ import socket
 import time
 
 from app.utility.base_world import BaseWorld
+from plugins.terminal.app.c_session import Session
 
 
 class Tcp:
@@ -45,7 +46,7 @@ class SessionHandler(BaseWorld):
     async def refresh(self):
         for index, session in enumerate(self.sessions):
             try:
-                session.get('connection').send(str.encode(' '))
+                session.connection.send(str.encode(' '))
             except socket.error:
                 del self.sessions[index]
 
@@ -58,14 +59,16 @@ class SessionHandler(BaseWorld):
         parts = profile.split('$')
         structured_profile = dict(paw=self.generate_name(size=6), host=parts[0], username=parts[1], platform=parts[2])
         agent = await self.services.get('contact_svc').handle_heartbeat(**structured_profile)
-        self.sessions.append(dict(id=len(self.sessions) + 1, paw=agent.paw, connection=connection))
+        new_session = Session(id=len(self.sessions) + 1, paw=agent.paw, connection=connection)
+        self.sessions.append(new_session)
+        await self.send(new_session.id, agent.paw)
 
     async def send(self, session_id, cmd):
-        conn = next(i['connection'] for i in self.sessions if i['id'] == int(session_id))
+        conn = next(i.connection for i in self.sessions if i.id == int(session_id))
         conn.send(str.encode(' '))
         conn.send(str.encode('%s\n' % cmd))
-        client_response = await self._attempt_connection(conn, 100)
-        return client_response
+        raw_response = await self._attempt_connection(conn, 100)
+        return raw_response.split('$')[0], raw_response.split('$')[1]
 
     """ PRIVATE """
 
