@@ -16,7 +16,7 @@ class TermApi(BaseService):
     async def splash(self, request):
         await self.services.get('auth_svc').check_permissions(request)
         await self.tcp_conn.handler.refresh()
-        return dict(sessions=[dict(id=s['id'], info=s['shell_info']) for s in self.tcp_conn.handler.sessions])
+        return dict(sessions=[dict(id=s['id'], info=s['paw']) for s in self.tcp_conn.handler.sessions])
 
     async def dynamically_compile(self, headers):
         name, platform = headers.get('file'), headers.get('platform')
