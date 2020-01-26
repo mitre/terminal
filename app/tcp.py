@@ -1,4 +1,5 @@
 import asyncio
+import json
 import socket
 import time
 
@@ -6,10 +7,11 @@ from app.utility.base_world import BaseWorld
 from plugins.terminal.app.c_session import Session
 
 
-class Tcp:
+class Tcp(BaseWorld):
 
     def __init__(self, services):
         self.name = 'tcp'
+        self.contact_svc = services.get('contact_svc')
         self.tcp_ports = services.get('app_svc').config['secrets']['terminal']['tcp_ports']
         terminal_keys = services.get('app_svc').config['secrets']['terminal']['terminal_keys']
         self.handler = SessionHandler(services, terminal_keys)
@@ -21,10 +23,18 @@ class Tcp:
             loop.create_task(h)
             loop.create_task(self.operation_loop())
 
-    @staticmethod
-    async def operation_loop():
-        while True:
-            await asyncio.sleep(60)
+    async def operation_loop(self):
+        try:
+            while True:
+                for session in self.handler.sessions:
+                    instructions = json.loads(await self.contact_svc.get_instructions(session.paw))
+                    for i in instructions:
+                        instruction = json.loads(i)
+                        paw, response = await self.handler.send(session.id, self.decode_bytes(instruction['command']))
+                        await self.contact_svc.save_results(id=instruction['id'], output=self.encode_string(response), status=0, pid=0)
+                await asyncio.sleep(20)
+        except Exception as e:
+            print('TCP operation loop hit an error: %s' % e)
 
     @staticmethod
     def valid_config():
