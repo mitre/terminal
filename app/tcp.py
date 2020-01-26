@@ -2,6 +2,8 @@ import asyncio
 import socket
 import time
 
+from app.utility.base_world import BaseWorld
+
 
 class Tcp:
 
@@ -9,13 +11,19 @@ class Tcp:
         self.name = 'tcp'
         self.tcp_ports = services.get('app_svc').config['secrets']['terminal']['tcp_ports']
         terminal_keys = services.get('app_svc').config['secrets']['terminal']['terminal_keys']
-        self.handler = SessionHandler(terminal_keys)
+        self.handler = SessionHandler(services, terminal_keys)
 
     def start(self):
         loop = asyncio.get_event_loop()
         for sock in self.tcp_ports:
             h = asyncio.start_server(self.handler.accept, '0.0.0.0', sock, loop=loop)
             loop.create_task(h)
+            loop.create_task(self.operation_loop())
+
+    @staticmethod
+    async def operation_loop():
+        while True:
+            await asyncio.sleep(60)
 
     @staticmethod
     def valid_config():
@@ -26,9 +34,10 @@ class ShellHandshakeFailure(ConnectionError):
     pass
 
 
-class SessionHandler:
+class SessionHandler(BaseWorld):
 
-    def __init__(self, terminal_keys):
+    def __init__(self, services, terminal_keys):
+        self.services = services
         self.terminal_keys = terminal_keys
         self.sessions = []
         self.seen_ips = set()
@@ -42,11 +51,14 @@ class SessionHandler:
 
     async def accept(self, reader, writer):
         try:
-            shell_info = await self._handshake(reader, writer)
+            profile = await self._handshake(reader, writer)
         except ShellHandshakeFailure:
             return
         connection = writer.get_extra_info('socket')
-        self.sessions.append(dict(id=len(self.sessions) + 1, shell_info=shell_info, connection=connection))
+        parts = profile.split('$')
+        structured_profile = dict(paw=self.generate_name(size=6), host=parts[0], username=parts[1], platform=parts[2])
+        agent = await self.services.get('contact_svc').handle_heartbeat(**structured_profile)
+        self.sessions.append(dict(id=len(self.sessions) + 1, paw=agent.paw, connection=connection))
 
     async def send(self, session_id, cmd):
         conn = next(i['connection'] for i in self.sessions if i['id'] == int(session_id))
