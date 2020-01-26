@@ -11,6 +11,7 @@ address = '/plugin/terminal/gui'
 
 
 async def enable(services):
+    await services.get('data_svc').apply('sessions')
     app = services.get('app_svc').application
     tcp_conn = Tcp(services)
     term_api = TermApi(services, tcp_conn)
