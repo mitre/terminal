@@ -14,18 +14,20 @@ import (
  )
 
  //Execute runs an arbitrary terminal command
- func Execute(command string) []byte {
+ func Execute(command string) ([]byte, int) {
 	var bites []byte
 	var error error
+	var status int
 	if runtime.GOOS == "windows" {
 	   bites, error = exec.Command("powershell.exe", "-ExecutionPolicy", "Bypass", "-C", command).Output()
 	} else {
 	   bites, error = exec.Command("sh", "-c", command).Output()
     }
     if error != nil {
-       bites = []byte(string(error.Error()))
+	   bites = []byte(string(error.Error()))
+	   status = 1
 	}
-	return []byte(fmt.Sprintf("%s%s", bites, "\n"))
+	return []byte(fmt.Sprintf("%s%s", bites, "\n")), status
 }
 
 //ChangeDirectory switches working directory
