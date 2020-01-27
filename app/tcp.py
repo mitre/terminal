@@ -11,6 +11,7 @@ class Tcp(BaseWorld):
 
     def __init__(self, services):
         self.name = 'tcp'
+        self.log = self.create_logger('basic_tcp')
         self.contact_svc = services.get('contact_svc')
         self.tcp_ports = services.get('app_svc').config['secrets']['terminal']['tcp_ports']
         terminal_keys = services.get('app_svc').config['secrets']['terminal']['terminal_keys']
@@ -30,11 +31,13 @@ class Tcp(BaseWorld):
                     instructions = json.loads(await self.contact_svc.get_instructions(session.paw))
                     for i in instructions:
                         instruction = json.loads(i)
-                        paw, response = await self.handler.send(session.id, self.decode_bytes(instruction['command']))
-                        await self.contact_svc.save_results(id=instruction['id'], output=self.encode_string(response), status=0, pid=0)
-                await asyncio.sleep(60)
+                        self.log.debug('TCP instruction: %s' % instruction['id'])
+                        _, status, response = await self.handler.send(session.id, self.decode_bytes(instruction['command']))
+                        await self.contact_svc.save_results(id=instruction['id'], output=self.encode_string(response), status=status, pid=0)
+                        await asyncio.sleep(instruction['sleep'])
+                await asyncio.sleep(20)
         except Exception as e:
-            print('TCP operation loop hit an error: %s' % e)
+            self.log.debug('operation error: %s' % e)
 
     @staticmethod
     def valid_config():
@@ -81,7 +84,7 @@ class SessionHandler(BaseWorld):
         conn.send(str.encode(' '))
         conn.send(str.encode('%s\n' % cmd))
         raw_response = await self._attempt_connection(conn, 100)
-        return raw_response.split('$')[0], raw_response.split('$')[1]
+        return raw_response.split('$')[0], raw_response.split('$')[1], raw_response.split('$')[2]
 
     """ PRIVATE """
 
