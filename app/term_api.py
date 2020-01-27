@@ -34,7 +34,7 @@ class TermApi(BaseService):
         try:
             session_id = path.split('/')[1]
             cmd = await socket.recv()
-            paw, reply = await self.tcp_conn.handler.send(session_id, cmd)
+            paw, status, reply = await self.tcp_conn.handler.send(session_id, cmd)
             await self.contact_svc.handle_heartbeat(**dict(paw=paw))
             await socket.send(reply.strip())
         except Exception:
