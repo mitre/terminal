@@ -19,7 +19,7 @@ async def enable(services):
     app.router.add_route('GET', '/plugin/terminal/gui', term_api.splash)
 
     await services.get('contact_svc').register(tcp_conn)
-    await services.get('file_svc').add_special_payload('reverse.go', term_api.dynamically_compile)
+    await services.get('file_svc').add_special_payload('manx.go', term_api.dynamically_compile)
     await services.get('data_svc').load_data(directory='plugins/terminal/data')
 
     logging.getLogger('websockets').setLevel(logging.FATAL)

