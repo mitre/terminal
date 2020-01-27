@@ -2,7 +2,7 @@ import asyncio
 import logging
 import websockets
 
-from plugins.terminal.app.tcp import Tcp
+from plugins.terminal.app.contact_tcp import Tcp
 from plugins.terminal.app.term_api import TermApi
 
 name = 'Terminal'
