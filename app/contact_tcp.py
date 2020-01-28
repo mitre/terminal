@@ -13,16 +13,17 @@ class Tcp(BaseWorld):
         self.name = 'tcp'
         self.log = self.create_logger('basic_tcp')
         self.contact_svc = services.get('contact_svc')
-        self.tcp_ports = services.get('app_svc').config['secrets']['terminal']['tcp_ports']
+        self.tcp_port = services.get('app_svc').config['secrets']['terminal']['tcp_port']
+        self.udp_port = services.get('app_svc').config['secrets']['terminal']['udp_port']
         terminal_keys = services.get('app_svc').config['secrets']['terminal']['terminal_keys']
         self.handler = SessionHandler(services, terminal_keys)
+        self.udp_handler = UdpSessionHandler(services, terminal_keys)
 
     def start(self):
         loop = asyncio.get_event_loop()
-        for sock in self.tcp_ports:
-            h = asyncio.start_server(self.handler.accept, '0.0.0.0', sock, loop=loop)
-            loop.create_task(h)
-            loop.create_task(self.operation_loop())
+        loop.create_task(asyncio.start_server(self.handler.accept, '0.0.0.0', self.tcp_port, loop=loop))
+        loop.create_task(loop.create_datagram_endpoint(lambda: self.udp_handler, local_addr=('0.0.0.0', self.udp_port)))
+        loop.create_task(self.operation_loop())
 
     async def operation_loop(self):
         try:
@@ -114,3 +115,18 @@ class SessionHandler(BaseWorld):
                 attempts += 1
                 time.sleep(.1 * attempts)
         return client_response
+
+
+class UdpSessionHandler(asyncio.DatagramProtocol):
+
+    def __init__(self, services, terminal_keys):
+        super().__init__()
+        self.services = services
+        self.seen_ips = set()
+        self.terminal_keys = terminal_keys
+
+    def connection_made(self, transport):
+        self.transport = transport
+
+    def datagram_received(self, data, addr):
+        print(data.decode())
