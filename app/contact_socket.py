@@ -63,9 +63,9 @@ class TcpSessionHandler(BaseWorld):
 
     async def accept(self, reader, writer):
         try:
-            profile = await self._handshake(reader, writer)
-        except Exception:
-            return
+            profile = await self._handshake(reader)
+        except Exception as e:
+            self.log.debug('Handshake failed: %s' % e)
         connection = writer.get_extra_info('socket')
         parts = profile.split('$')
         structured_profile = dict(
@@ -87,7 +87,9 @@ class TcpSessionHandler(BaseWorld):
 
     """ PRIVATE """
 
-    async def _handshake(self, reader, writer):
+    @staticmethod
+    async def _handshake(reader):
+        (await reader.readline()).strip()
         return (await reader.readline()).strip().decode()
 
     @staticmethod
@@ -117,13 +119,12 @@ class UdpSessionHandler(asyncio.DatagramProtocol):
         async def save_agent(data, addr):
             try:
                 parts = data.decode().split('$')
-                if parts[6] in self.terminal_keys:
-                    profile = dict(
-                        host=parts[0], username=parts[1], platform=parts[2], architecture=parts[3],
-                        executors=parts[4].split(','), contact='udp', paw=parts[5]
-                    )
-                    agent = await self.contact_svc.handle_heartbeat(**profile)
-                    self.log.debug('Incoming beacon from %s' % agent.paw)
+                profile = dict(
+                    host=parts[0], username=parts[1], platform=parts[2], architecture=parts[3],
+                    executors=parts[4].split(','), contact='udp', paw=parts[5]
+                )
+                agent = await self.contact_svc.handle_heartbeat(**profile)
+                self.log.debug('Incoming beacon from %s' % agent.paw)
             except Exception as e:
                 print(e)
         asyncio.get_event_loop().create_task(save_agent(data, addr))
