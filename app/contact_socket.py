@@ -113,7 +113,6 @@ class UdpSessionHandler(asyncio.DatagramProtocol):
         super().__init__()
         self.log = BaseWorld.create_logger('udp_session')
         self.contact_svc = services.get('contact_svc')
-        self.terminal_keys = terminal_keys
 
     def datagram_received(self, data, addr):
         async def save_agent(data, addr):
