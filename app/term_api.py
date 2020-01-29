@@ -1,4 +1,3 @@
-import hashlib
 from shutil import which
 
 from aiohttp_jinja2 import template
@@ -13,6 +12,7 @@ class TermApi(BaseService):
         self.auth_svc = services.get('auth_svc')
         self.file_svc = services.get('file_svc')
         self.contact_svc = services.get('contact_svc')
+        self.app_svc = services.get('app_svc')
         self.socket_conn = socket_conn
 
     @template('terminal.html')
@@ -32,11 +32,7 @@ class TermApi(BaseService):
             output = 'plugins/%s/payloads/%s-%s' % (plugin, name, platform)
             self.log.debug('Dynamically compiling %s' % name)
             await self.file_svc.compile_go(platform, output, file_path, ldflags=' '.join(ldflags))
-        _, path = await self.file_svc.find_file_path('%s-%s' % (name, platform))
-        signature = hashlib.md5(open(path, 'rb').read()).hexdigest()
-        display_name = await self.contact_svc.build_filename(platform)
-        self.log.debug('manx downloaded with hash=%s and name=%s' % (signature, display_name))
-        return '%s-%s' % (name, platform), display_name
+        return await self.app_svc.retrieve_compiled_file(name, platform)
 
     async def socket_handler(self, socket, path):
         try:
