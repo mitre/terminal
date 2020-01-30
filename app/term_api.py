@@ -38,6 +38,8 @@ class TermApi(BaseService):
         try:
             session_id = path.split('/')[1]
             cmd = await socket.recv()
+            paw = next(i.paw for i in self.socket_conn.tcp_handler.sessions if i.id == int(session_id))
+            self.log.debug('%s: %s' % (paw, cmd))
             status, reply = await self.socket_conn.tcp_handler.send(session_id, cmd)
             await socket.send(reply.strip())
         except Exception:
