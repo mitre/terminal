@@ -48,7 +48,7 @@ func callMeBack(port int) {
     }
     for {
         _,remoteaddr,err := ser.ReadFromUDP(p)
-        output.VerbosePrint(fmt.Sprintf("[+] instruction received (%v) %s", remoteaddr, p))
+        output.VerbosePrint(fmt.Sprintf("[+] instruction received (%v)", remoteaddr))
         if err !=  nil {
             output.VerbosePrint(fmt.Sprintf("[-] %v", err))
             continue
