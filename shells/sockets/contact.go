@@ -2,7 +2,7 @@ package sockets
 
 //Contact defines required functions for communicating with the server
 type Contact interface {
-	Listen(key string, udp string, http string, inbound int, profile string) 
+	Listen(udp string, http string, inbound int, profile map[string]interface{} ) 
 }
 
 //CommunicationChannels contains the contact implementations
