@@ -66,6 +66,7 @@ class TcpSessionHandler(BaseWorld):
             profile = await self._handshake(reader)
         except Exception as e:
             self.log.debug('Handshake failed: %s' % e)
+            return
         connection = writer.get_extra_info('socket')
         parts = profile.split('$')
         structured_profile = dict(
@@ -115,7 +116,7 @@ class UdpSessionHandler(asyncio.DatagramProtocol):
         self.contact_svc = services.get('contact_svc')
 
     def datagram_received(self, data, addr):
-        async def handle_beacon(data, addr):
+        async def handle_beacon():
             try:
                 # save beacon
                 parts = data.decode().split('$')
@@ -127,8 +128,11 @@ class UdpSessionHandler(asyncio.DatagramProtocol):
                 self.log.debug('Incoming beacon from %s' % agent.paw)
 
                 # send response
-                sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-                sock.sendto('roger'.encode(), (addr[0], int(parts[7])))
+                for i in json.loads(await self.contact_svc.get_instructions(agent.paw)):
+                    instruction = json.loads(i)
+                    self.log.debug('UDP instruction: %s' % instruction['id'])
+                    sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+                    sock.sendto(BaseWorld.decode_bytes(instruction['command']).encode(), (addr[0], int(parts[7])))
             except Exception as e:
-                print(e)
-        asyncio.get_event_loop().create_task(handle_beacon(data, addr))
+                self.log.debug(e)
+        asyncio.get_event_loop().create_task(handle_beacon())
