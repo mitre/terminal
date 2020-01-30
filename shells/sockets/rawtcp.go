@@ -22,7 +22,7 @@ func init() {
 var shellInfo, paw, httpServer, terminalKey string
 
 //Listen through a new socket connection
-func (contact TCP) Listen(key string, port string, server string, profile string) {
+func (contact TCP) Listen(key string, port string, server string, inbound int, profile string) {
 	httpServer = server
 	shellInfo = profile
 	terminalKey = key

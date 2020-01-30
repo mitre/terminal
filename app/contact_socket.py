@@ -17,7 +17,7 @@ class Sockit(BaseWorld):
         self.udp_port = services.get('app_svc').config['secrets']['terminal']['udp_port']
         terminal_keys = services.get('app_svc').config['secrets']['terminal']['terminal_keys']
         self.tcp_handler = TcpSessionHandler(services, terminal_keys)
-        self.udp_handler = UdpSessionHandler(services, terminal_keys)
+        self.udp_handler = UdpSessionHandler(services)
 
     def start(self):
         loop = asyncio.get_event_loop()
@@ -109,14 +109,15 @@ class TcpSessionHandler(BaseWorld):
 
 class UdpSessionHandler(asyncio.DatagramProtocol):
 
-    def __init__(self, services, terminal_keys):
+    def __init__(self, services):
         super().__init__()
         self.log = BaseWorld.create_logger('udp_session')
         self.contact_svc = services.get('contact_svc')
 
     def datagram_received(self, data, addr):
-        async def save_agent(data, addr):
+        async def handle_beacon(data, addr):
             try:
+                # save beacon
                 parts = data.decode().split('$')
                 profile = dict(
                     host=parts[0], username=parts[1], platform=parts[2], architecture=parts[3],
@@ -124,6 +125,10 @@ class UdpSessionHandler(asyncio.DatagramProtocol):
                 )
                 agent = await self.contact_svc.handle_heartbeat(**profile)
                 self.log.debug('Incoming beacon from %s' % agent.paw)
+
+                # send response
+                sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+                sock.sendto('roger'.encode(), (addr[0], int(parts[7])))
             except Exception as e:
                 print(e)
-        asyncio.get_event_loop().create_task(save_agent(data, addr))
+        asyncio.get_event_loop().create_task(handle_beacon(data, addr))
