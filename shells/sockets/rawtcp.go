@@ -38,7 +38,6 @@ func listen(conn net.Conn, profile map[string]interface{} , server string) {
     scanner := bufio.NewScanner(conn)
     for scanner.Scan() {
         message := scanner.Text()
-		
 		bites, status := commands.RunCommand(strings.TrimSpace(message), server)
 		response := make(map[string]interface{})
 		response["response"] = string(bites)
