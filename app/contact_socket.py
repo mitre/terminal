@@ -26,19 +26,19 @@ class Sockit(BaseWorld):
         loop.create_task(self.operation_loop())
 
     async def operation_loop(self):
-        try:
-            while True:
-                for session in self.tcp_handler.sessions:
-                    instructions = json.loads(await self.contact_svc.get_instructions(session.paw))
-                    for i in instructions:
+        while True:
+            for session in self.tcp_handler.sessions:
+                _, instructions = await self.contact_svc.handle_heartbeat(paw=session.paw)
+                for i in json.loads(instructions):
+                    try:
                         instruction = json.loads(i)
                         self.log.debug('TCP instruction: %s' % instruction['id'])
-                        _, status, response = await self.tcp_handler.send(session.id, self.decode_bytes(instruction['command']))
+                        status, response = await self.tcp_handler.send(session.id, self.decode_bytes(instruction['command']))
                         await self.contact_svc.save_results(id=instruction['id'], output=self.encode_string(response), status=status, pid=0)
                         await asyncio.sleep(instruction['sleep'])
-                await asyncio.sleep(20)
-        except Exception as e:
-            self.log.debug('operation error: %s' % e)
+                    except Exception as e:
+                        self.log.debug('operation error: %s' % e)
+            await asyncio.sleep(20)
 
     @staticmethod
     def valid_config():
@@ -66,31 +66,28 @@ class TcpSessionHandler(BaseWorld):
             profile = await self._handshake(reader)
         except Exception as e:
             self.log.debug('Handshake failed: %s' % e)
+            return
         connection = writer.get_extra_info('socket')
-        parts = profile.split('$')
-        structured_profile = dict(
-            host=parts[0], username=parts[1], platform=parts[2], architecture=parts[3], executors=parts[4].split(','),
-            contact='tcp'
-        )
-        agent = await self.services.get('contact_svc').handle_heartbeat(**structured_profile)
+        profile['executors'] = [e for e in profile['executors'].split(',') if e]
+        profile['contact'] = 'tcp'
+        agent, instructions = await self.services.get('contact_svc').handle_heartbeat(**profile)
         new_session = Session(id=len(self.sessions) + 1, paw=agent.paw, connection=connection)
         self.sessions.append(new_session)
-        self.log.debug('Incoming beacon from %s' % agent.paw)
         await self.send(new_session.id, agent.paw)
 
     async def send(self, session_id, cmd):
         conn = next(i.connection for i in self.sessions if i.id == int(session_id))
         conn.send(str.encode(' '))
         conn.send(str.encode('%s\n' % cmd))
-        raw_response = await self._attempt_connection(conn, 100)
-        return raw_response.split('$')[0], raw_response.split('$')[1], raw_response.split('$')[2]
+        response = json.loads(await self._attempt_connection(conn, 100))
+        return response['status'], response['response']
 
     """ PRIVATE """
 
     @staticmethod
     async def _handshake(reader):
-        (await reader.readline()).strip()
-        return (await reader.readline()).strip().decode()
+        profile_bites = (await reader.readline()).strip()
+        return json.loads(profile_bites)
 
     @staticmethod
     async def _attempt_connection(connection, max_tries):
@@ -115,20 +112,19 @@ class UdpSessionHandler(asyncio.DatagramProtocol):
         self.contact_svc = services.get('contact_svc')
 
     def datagram_received(self, data, addr):
-        async def handle_beacon(data, addr):
+        async def handle_beacon():
             try:
                 # save beacon
-                parts = data.decode().split('$')
-                profile = dict(
-                    host=parts[0], username=parts[1], platform=parts[2], architecture=parts[3],
-                    executors=parts[4].split(','), contact='udp', paw=parts[5]
-                )
-                agent = await self.contact_svc.handle_heartbeat(**profile)
-                self.log.debug('Incoming beacon from %s' % agent.paw)
+                profile = json.loads(data.decode())
+                callback_port = profile.pop('callback')
+                agent, instructions = await self.contact_svc.handle_heartbeat(**profile)
 
                 # send response
-                sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-                sock.sendto('roger'.encode(), (addr[0], int(parts[7])))
+                for i in json.loads(instructions):
+                    instruction = json.loads(i)
+                    self.log.debug('UDP instruction: %s' % instruction['id'])
+                    sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+                    sock.sendto(BaseWorld.decode_bytes(instruction['command']).encode(), (addr[0], int(callback_port)))
             except Exception as e:
-                print(e)
-        asyncio.get_event_loop().create_task(handle_beacon(data, addr))
+                self.log.debug(e)
+        asyncio.get_event_loop().create_task(handle_beacon())
