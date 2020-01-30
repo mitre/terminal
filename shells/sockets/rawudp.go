@@ -5,7 +5,8 @@ import (
 	"net"
 	"time"
 	"math/rand"
-
+	"encoding/json"
+	
 	"../output"
 )
 
@@ -17,16 +18,15 @@ func init() {
 }
 
 //Listen through a new socket connection
-func (contact UDP) Listen(key string, port string, server string, inbound int, profile string) {
-	paw := buildPaw()
-	updatedProfile := fmt.Sprintf("%s$%s$%s$%d", profile, paw, key, inbound)
-
+func (contact UDP) Listen(port string, server string, inbound int, profile map[string]interface{}) {
+	profile["paw"]= buildPaw()
+	profile["callback"] = inbound
 	go callMeBack(inbound)
 
 	for {
 	   conn, err := net.Dial("udp", port)
 	   if err == nil {
-			beacon(conn, updatedProfile)
+			beacon(conn, profile)
 		} else {
 			output.VerbosePrint(fmt.Sprintf("[-] %s", err))
 		}
@@ -61,7 +61,8 @@ func buildPaw() string {
 	return fmt.Sprintf("%d", rand.Intn(999999 - 1))
 }
 
-func beacon(conn net.Conn, updatedProfile string) {
+func beacon(conn net.Conn, profile map[string]interface{}) {
 	output.VerbosePrint("[*] Sending beacon")
-	fmt.Fprintf(conn, updatedProfile)
+	jdata, _ := json.Marshal(profile)
+	fmt.Fprintf(conn, string(jdata))
 }

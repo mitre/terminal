@@ -38,8 +38,7 @@ class TermApi(BaseService):
         try:
             session_id = path.split('/')[1]
             cmd = await socket.recv()
-            paw, status, reply = await self.socket_conn.tcp_handler.send(session_id, cmd)
-            await self.contact_svc.handle_heartbeat(**dict(paw=paw))
+            status, reply = await self.socket_conn.tcp_handler.send(session_id, cmd)
             await socket.send(reply.strip())
         except Exception:
             await socket.send('CONNECTION LOST!')
