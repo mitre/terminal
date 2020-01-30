@@ -28,7 +28,7 @@ func (contact UDP) Listen(key string, port string, server string, inbound int, p
 	   if err == nil {
 			beacon(conn, updatedProfile)
 		} else {
-			fmt.Println(fmt.Sprintf("[-] %s", err))
+			output.VerbosePrint(fmt.Sprintf("[-] %s", err))
 		}
 		conn.Close()
 		time.Sleep(60 * time.Second)
@@ -43,14 +43,14 @@ func callMeBack(port int) {
     }
     ser, err := net.ListenUDP("udp", &addr)
     if err != nil {
-        fmt.Printf("[-] %v\n", err)
+        output.VerbosePrint(fmt.Sprintf("[-] %v\n", err))
         return
     }
     for {
         _,remoteaddr,err := ser.ReadFromUDP(p)
-        fmt.Printf("[+] instruction received (%v) %s \n", remoteaddr, p)
+        output.VerbosePrint(fmt.Sprintf("[+] instruction received (%v) %s \n", remoteaddr, p))
         if err !=  nil {
-            fmt.Printf("[-] %v", err)
+            output.VerbosePrint(fmt.Sprintf("[-] %v", err))
             continue
         }
     }
