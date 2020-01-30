@@ -29,15 +29,14 @@ class Sockit(BaseWorld):
         while True:
             for session in self.tcp_handler.sessions:
                 _, instructions = await self.contact_svc.handle_heartbeat(paw=session.paw)
-                for i in json.loads(instructions):
+                for instruction in instructions:
                     try:
-                        instruction = json.loads(i)
-                        self.log.debug('TCP instruction: %s' % instruction['id'])
-                        status, response = await self.tcp_handler.send(session.id, self.decode_bytes(instruction['command']))
-                        await self.contact_svc.save_results(id=instruction['id'], output=self.encode_string(response), status=status, pid=0)
-                        await asyncio.sleep(instruction['sleep'])
+                        self.log.debug('TCP instruction: %s' % instruction.id)
+                        status, response = await self.tcp_handler.send(session.id, self.decode_bytes(instruction.command))
+                        await self.contact_svc.save_results(id=instruction.id, output=self.encode_string(response), status=status, pid=0)
+                        await asyncio.sleep(instruction.sleep)
                     except Exception as e:
-                        self.log.debug('operation error: %s' % e)
+                        self.log.debug('[-] operation exception: %s' % e)
             await asyncio.sleep(20)
 
     @staticmethod
@@ -76,11 +75,15 @@ class TcpSessionHandler(BaseWorld):
         await self.send(new_session.id, agent.paw)
 
     async def send(self, session_id, cmd):
-        conn = next(i.connection for i in self.sessions if i.id == int(session_id))
-        conn.send(str.encode(' '))
-        conn.send(str.encode('%s\n' % cmd))
-        response = json.loads(await self._attempt_connection(conn, 100))
-        return response['status'], response['response']
+        try:
+            conn = next(i.connection for i in self.sessions if i.id == int(session_id))
+            conn.send(str.encode(' '))
+            conn.send(str.encode('%s\n' % cmd))
+            response = await self._attempt_connection(conn, 100)
+            response = json.loads(response)
+            return response['status'], response['response']
+        except Exception as e:
+            return 1, e
 
     """ PRIVATE """
 
@@ -116,15 +119,14 @@ class UdpSessionHandler(asyncio.DatagramProtocol):
             try:
                 # save beacon
                 profile = json.loads(data.decode())
-                callback_port = profile.pop('callback')
-                agent, instructions = await self.contact_svc.handle_heartbeat(**profile)
+                callback = profile.pop('callback')
+                profile['executors'] = [e for e in profile['executors'].split(',') if e]
+                profile['contact'] = 'udp'
+                agent, _ = await self.contact_svc.handle_heartbeat(**profile)
 
-                # send response
-                for i in json.loads(instructions):
-                    instruction = json.loads(i)
-                    self.log.debug('UDP instruction: %s' % instruction['id'])
-                    sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-                    sock.sendto(BaseWorld.decode_bytes(instruction['command']).encode(), (addr[0], int(callback_port)))
+                # send confirmation
+                sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+                sock.sendto('roger'.encode(), (addr[0], int(callback)))
             except Exception as e:
                 self.log.debug(e)
         asyncio.get_event_loop().create_task(handle_beacon())
