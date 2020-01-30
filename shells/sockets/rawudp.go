@@ -17,19 +17,43 @@ func init() {
 }
 
 //Listen through a new socket connection
-func (contact UDP) Listen(key string, port string, server string, profile string) {
+func (contact UDP) Listen(key string, port string, server string, inbound int, profile string) {
 	paw := buildPaw()
-	updatedProfile := fmt.Sprintf("%s$%s$%s", profile, paw, key)
+	updatedProfile := fmt.Sprintf("%s$%s$%s$%d", profile, paw, key, inbound)
+
+	go callMeBack(inbound)
+
 	for {
 	   conn, err := net.Dial("udp", port)
 	   if err == nil {
 			beacon(conn, updatedProfile)
 		} else {
-			fmt.Println(fmt.Sprintf("[-] %s", err))
+			output.VerbosePrint(fmt.Sprintf("[-] %s", err))
 		}
 		conn.Close()
 		time.Sleep(60 * time.Second)
 	}
+}
+
+func callMeBack(port int) {
+	p := make([]byte, 2048)
+    addr := net.UDPAddr{
+        Port: port,
+        IP: net.ParseIP("0.0.0.0"),
+    }
+    ser, err := net.ListenUDP("udp", &addr)
+    if err != nil {
+        output.VerbosePrint(fmt.Sprintf("[-] %v\n", err))
+        return
+    }
+    for {
+        _,remoteaddr,err := ser.ReadFromUDP(p)
+        output.VerbosePrint(fmt.Sprintf("[+] instruction received (%v) %s", remoteaddr, p))
+        if err !=  nil {
+            output.VerbosePrint(fmt.Sprintf("[-] %v", err))
+            continue
+        }
+    }
 }
 
 func buildPaw() string {
