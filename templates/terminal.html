@@ -40,7 +40,7 @@
                             <option value="windows-psh">Windows (PowerShell)</option>
                         </select>
                         <br>
-                        <button id="reportBtn" type="button" class="button-success atomic-button" onclick="downloadReverseReport()">Download report</button>
+                        <button id="reportBtn" type="button" class="button-success atomic-button" onclick="downloadReport('/plugin/terminal/report', 'reverse_report')">Download report</button>
                     </div>
                     <div class="column" style="flex:75%;padding:15px;text-align: left">
                         <div style="background-color: var(--primary-background);padding: 15px;border-radius: 25px">
@@ -158,19 +158,5 @@
          function removeSection(identifier){
              $('#'+identifier).hide();
          }
-
-         function downloadReverseReport() {
-            function downloadObjectAsJson(data){
-                let exportName = 'reverse_report';
-                let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-                let downloadAnchorNode = document.createElement('a');
-                downloadAnchorNode.setAttribute("href", dataStr);
-                downloadAnchorNode.setAttribute("download", exportName + ".json");
-                document.body.appendChild(downloadAnchorNode);
-                downloadAnchorNode.click();
-                downloadAnchorNode.remove();
-            }
-            restRequest('POST', {}, downloadObjectAsJson, '/plugin/terminal/report');
-        }
      </script>
  </html>
