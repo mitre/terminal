@@ -2,7 +2,8 @@ import asyncio
 import logging
 import websockets
 
-from plugins.terminal.app.contact_socket import Sockit
+from plugins.terminal.app.contact_tcp import Tcp
+from plugins.terminal.app.contact_udp import Udp
 from plugins.terminal.app.term_api import TermApi
 
 name = 'Terminal'
@@ -13,13 +14,15 @@ address = '/plugin/terminal/gui'
 async def enable(services):
     await services.get('data_svc').apply('sessions')
     app = services.get('app_svc').application
-    socket_conn = Sockit(services)
-    term_api = TermApi(services, socket_conn)
+    tcp_conn = Tcp(services)
+
+    term_api = TermApi(services, tcp_conn)
     app.router.add_static('/terminal', 'plugins/terminal/static/', append_version=True)
     app.router.add_route('GET', '/plugin/terminal/gui', term_api.splash)
     app.router.add_route('POST', '/plugin/terminal/report', term_api.download_report)
 
-    await services.get('contact_svc').register(socket_conn)
+    await services.get('contact_svc').register(tcp_conn)
+    await services.get('contact_svc').register(Udp(services))
     await services.get('file_svc').add_special_payload('manx.go', term_api.dynamically_compile)
     await services.get('data_svc').load_data(directory='plugins/terminal/data')
 
