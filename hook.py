@@ -17,6 +17,7 @@ async def enable(services):
     term_api = TermApi(services, socket_conn)
     app.router.add_static('/terminal', 'plugins/terminal/static/', append_version=True)
     app.router.add_route('GET', '/plugin/terminal/gui', term_api.splash)
+    app.router.add_route('POST', '/plugin/terminal/report', term_api.download_report)
 
     await services.get('contact_svc').register(socket_conn)
     await services.get('file_svc').add_special_payload('manx.go', term_api.dynamically_compile)
@@ -24,6 +25,10 @@ async def enable(services):
 
     logging.getLogger('websockets').setLevel(logging.FATAL)
     asyncio.get_event_loop().create_task(start_emulator_connection(term_api))
+
+
+async def destroy():
+    pass
 
 
 async def start_emulator_connection(term_api):
