@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import websockets
 
@@ -30,8 +31,12 @@ async def enable(services):
     asyncio.get_event_loop().create_task(start_emulator_connection(term_api))
 
 
-async def destroy():
-    pass
+async def destroy(services):
+    r_dir = await services['file_svc'].create_exfil_sub_directory(
+        '%s/reports' % services['app_svc'].config['reports_dir']
+    )
+    report = json.dumps(dict(services['term_api'].reverse_report)).encode()
+    await services['file_svc'].save_file('reverse_report', report, r_dir)
 
 
 async def start_emulator_connection(term_api):
