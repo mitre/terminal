@@ -1,5 +1,8 @@
+from collections import defaultdict
+from datetime import datetime
 from shutil import which
 
+from aiohttp import web
 from aiohttp_jinja2 import template
 
 from app.utility.base_service import BaseService
@@ -14,12 +17,17 @@ class TermApi(BaseService):
         self.contact_svc = services.get('contact_svc')
         self.app_svc = services.get('app_svc')
         self.socket_conn = socket_conn
+        self.reverse_report = defaultdict(list)
 
     @template('terminal.html')
     async def splash(self, request):
         await self.auth_svc.check_permissions(request)
         await self.socket_conn.tcp_handler.refresh()
         return dict(sessions=[dict(id=s.id, info=s.paw) for s in self.socket_conn.tcp_handler.sessions])
+
+    async def download_report(self, request):
+        await self.auth_svc.check_permissions(request)
+        return web.json_response(dict(self.reverse_report))
 
     async def dynamically_compile(self, headers):
         name, platform = headers.get('file'), headers.get('platform')
@@ -39,7 +47,7 @@ class TermApi(BaseService):
             session_id = path.split('/')[1]
             cmd = await socket.recv()
             paw = next(i.paw for i in self.socket_conn.tcp_handler.sessions if i.id == int(session_id))
-            self.log.debug('%s: %s' % (paw, cmd))
+            self.reverse_report[paw].append(dict(date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'), cmd=cmd))
             status, reply = await self.socket_conn.tcp_handler.send(session_id, cmd)
             await socket.send(reply.strip())
         except Exception:
