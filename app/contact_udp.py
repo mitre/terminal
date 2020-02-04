@@ -15,7 +15,7 @@ class Udp(BaseWorld):
         self.udp_port = services.get('app_svc').config['secrets']['terminal']['udp_port']
         self.udp_handler = UdpSessionHandler(services)
 
-    def start(self):
+    async def start(self):
         loop = asyncio.get_event_loop()
         loop.create_task(loop.create_datagram_endpoint(lambda: self.udp_handler, local_addr=('0.0.0.0', self.udp_port)))
 

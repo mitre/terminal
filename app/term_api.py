@@ -50,5 +50,5 @@ class TermApi(BaseService):
             self.reverse_report[paw].append(dict(date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'), cmd=cmd))
             status, reply = await self.socket_conn.tcp_handler.send(session_id, cmd)
             await socket.send(reply.strip())
-        except Exception:
-            await socket.send('CONNECTION LOST!')
+        except Exception as e:
+            await socket.send('ERROR: %s' % e)
