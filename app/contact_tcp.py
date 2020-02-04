@@ -17,7 +17,7 @@ class Tcp(BaseWorld):
         self.tcp_port = services.get('app_svc').config['secrets']['terminal']['tcp_port']
         self.tcp_handler = TcpSessionHandler(services, self.log)
 
-    def start(self):
+    async def start(self):
         loop = asyncio.get_event_loop()
         loop.create_task(asyncio.start_server(self.tcp_handler.accept, '0.0.0.0', self.tcp_port, loop=loop))
         loop.create_task(self.operation_loop())

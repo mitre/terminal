@@ -12,10 +12,15 @@
     border: none;
     background-color: inherit;
     color: white;
-    margin: 20px;
+    margin: 5px;
     height: 400px;
     width: 95%;
 }
-.session-select {
-    width: 25%;
+.ability-filter tr td {
+    width: 22%;
+}
+.ability-filter select {
+    background-color: transparent;
+    color: white;
+    border: none;
 }
