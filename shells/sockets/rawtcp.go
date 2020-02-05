@@ -31,7 +31,7 @@ func (contact TCP) Listen(port string, server string, inbound int, profile map[s
 		   output.VerbosePrint(fmt.Sprintf("[+] TCP established for %s", profile["paw"]))
 		   listen(conn, profile, server)
 	   }
-	   time.Sleep(5 * time.Second)
+	   time.Sleep(60 * time.Second)
 	}
  }
 
