@@ -1,5 +1,6 @@
 <script src="/gui/jquery/jquery.js"></script>
 <script src="/gui/js/shared.js"></script>
+<script src="/terminal/js/xterm.js"></script>
  <html>
      <head>
          <title>Terminal | Options</title>
@@ -9,6 +10,7 @@
          <link rel="stylesheet" href="/gui/css/basic.css">
          <link rel="stylesheet" href="/gui/css/modal.css">
          <link rel="stylesheet" href="/terminal/css/basic.css">
+         <link rel="stylesheet" href="/terminal/css/xterm.css" />
      </head>
      <body>
      <div class="navbar plugin"></div>
@@ -66,7 +68,7 @@
                                 <table class="ability-filter" frame=void rules=rows style="border-spacing:5px;width:100%">
                                 <tr>
                                     <td>
-                                    <select id="session-id"  onchange="createTerminal();getAbilities()">
+                                    <select id="session-id"  onchange="getAbilities()">
                                          <option value="" disabled selected>Select a session</option>
                                          {% for s in sessions %}
                                              <option value="{{ s.id }}" data-paw="{{ s.info }}">{{ s.id }} - {{ s.info }}</option>
@@ -93,13 +95,7 @@
                             </center>
                          </div>
                          <br>
-                         <div class="terminal ttp-template">
-                             <table id="terminal" style="border-spacing:15px;width:100%;" frame="void">
-                                 <tbody></tbody>
-                             </table>
-                             <hr>
-                             <pre id="session-reply"></pre>
-                         </div>
+                         <div id="xterminal"></div>
                      </div>
                 </div>
             </div>
@@ -124,34 +120,49 @@
          </center>
      </body>
      <script>
+         // talk to server
          let webSocket = location.hostname+':8765';
          let tcpPort = location.hostname+':5678';
-         $(document).on('keypress',function(e) {
-            if(e.which === 13) {
-                let command = $('#session-cmd');
-                let sessionId = $('#session-id option:selected').attr('value');
-                let cmd = command.val();
 
-                let socket = new WebSocket('ws://'+webSocket+'/'+sessionId);
-                socket.onopen = function () {
-                    socket.send(cmd);
-                };
-                socket.onmessage = function (s) {
-                    $('#session-reply').text(s.data);
-                };
-            }
+         // build terminal emulator
+         let term = new Terminal();
+         term.setOption('cursorBlink', true);
+         term.open(document.getElementById('xterminal'));
+         term.write('~$ ');
+
+         // run terminal emulator
+         let input = "";
+         term.onData(function(data) {
+             const code = data.charCodeAt(0);
+             if(code === 13) {
+                 runCommand(input);
+                 input = "";
+             } else if (code === 127) {
+                // implement backspace
+             } else if (code < 32) {
+                 return;
+             } else {
+                 term.write(data);
+                 input += data;
+             }
          });
 
-         function createTerminal(){
-             $("#terminal tr").remove();
-             addCommandRow();
+         function runCommand(input) {
+             let sessionId = $('#session-id option:selected').attr('value');
+             let socket = new WebSocket('ws://'+webSocket+'/'+sessionId);
+             socket.onopen = function () {
+                 socket.send(input);
+             };
+             socket.onmessage = function (s) {
+                 let lines = s.data.split('\n');
+                 for(let i = 0;i < lines.length;i++){
+                    term.write("\r\n"+lines[i]);
+                 }
+                 term.write("\r\n~$ ");
+             };
          }
 
-         function addCommandRow(){
-             let template = $("#command-row").clone();
-             template.show();
-             $('#terminal > tbody:last-child').append('<tr><td><input id="session-cmd" type="text" spellcheck="false" placeholder="Enter command..."/></td></tr>');
-         }
+         // general helpful functions
 
          function displayCommand(){
             let selected_option = document.getElementById("dcommands").value;
@@ -183,6 +194,8 @@
          function removeSection(identifier){
              $('#'+identifier).hide();
          }
+
+         // ability filter options
 
          let ABILITIES = [];
          function getAbilities() {
@@ -221,7 +234,7 @@
          function showProcedure() {
              ABILITIES.forEach(function(ability){
                  if(ability.ability_id === $('#procedure-filter').val()) {
-                     $('#session-cmd').val(atob(ability.test));
+                     term.write(atob(ability.test));
                      return;
                  }
              });
