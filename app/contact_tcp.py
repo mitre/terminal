@@ -90,13 +90,17 @@ class TcpSessionHandler(BaseWorld):
     @staticmethod
     async def _attempt_connection(connection, max_tries):
         attempts = 0
-        client_response = None
-        while not client_response:
+        buffer = 4096
+        data = b''
+        while True:
             try:
-                client_response = str(connection.recv(4096), 'utf-8')
+                part = connection.recv(buffer)
+                data += part
+                if len(part) < buffer:
+                    break
             except BlockingIOError as err:
                 if attempts > max_tries:
                     raise err
                 attempts += 1
                 time.sleep(.1 * attempts)
-        return client_response
+        return str(data, 'utf-8')
