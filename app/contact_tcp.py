@@ -29,7 +29,7 @@ class Tcp(BaseWorld):
                 for instruction in instructions:
                     try:
                         self.log.debug('TCP instruction: %s' % instruction.id)
-                        status, response = await self.tcp_handler.send(session.id, self.decode_bytes(instruction.command))
+                        status, _, response = await self.tcp_handler.send(session.id, self.decode_bytes(instruction.command))
                         await self.contact_svc.save_results(id=instruction.id, output=self.encode_string(response), status=status, pid=0)
                         await asyncio.sleep(instruction.sleep)
                     except Exception as e:
@@ -76,7 +76,7 @@ class TcpSessionHandler(BaseWorld):
             conn.send(str.encode('%s\n' % cmd))
             response = await self._attempt_connection(conn, 100)
             response = json.loads(response)
-            return response['status'], response['response']
+            return response['status'], response["pwd"], response['response']
         except Exception as e:
             return 1, e
 
