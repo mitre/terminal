@@ -155,10 +155,12 @@
                  socket.send(input);
              };
              socket.onmessage = function (s) {
-                 let lines = s.data.split('\n');
+                 let jData = JSON.parse(s.data);
+                 let lines = jData["response"].split('\n');
                  for(let i = 0;i < lines.length;i++){
                     term.write("\r\n"+lines[i]);
                  }
+                 prompt = jData["pwd"];
                  term.write("\r\n"+prompt+" ");
              };
          }

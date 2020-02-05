@@ -1,3 +1,5 @@
+import json
+
 from collections import defaultdict
 from datetime import datetime
 from shutil import which
@@ -48,7 +50,7 @@ class TermApi(BaseService):
             cmd = await socket.recv()
             paw = next(i.paw for i in self.socket_conn.tcp_handler.sessions if i.id == int(session_id))
             self.reverse_report[paw].append(dict(date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'), cmd=cmd))
-            status, reply = await self.socket_conn.tcp_handler.send(session_id, cmd)
-            await socket.send(reply.strip())
+            status, pwd, reply = await self.socket_conn.tcp_handler.send(session_id, cmd)
+            await socket.send(json.dumps(dict(response=reply.strip(), pwd=pwd)))
         except Exception as e:
             await socket.send('ERROR: %s' % e)
