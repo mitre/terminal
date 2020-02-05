@@ -236,6 +236,7 @@
              ABILITIES.forEach(function(ability){
                  if(ability.ability_id === $('#procedure-filter').val()) {
                      term.write(atob(ability.test));
+                     input = atob(ability.test);
                      return;
                  }
              });
