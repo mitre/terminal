@@ -2,5 +2,3 @@
 socket:
   tcp: 5678
   udp: 5679
-terminal_keys:
-  - 94699f9970213dd1d4054ca678f1278a
