@@ -14,7 +14,7 @@ class Tcp(BaseWorld):
         self.description = 'Communication occurs through a raw TCP socket'
         self.log = self.create_logger('contact_tcp')
         self.contact_svc = services.get('contact_svc')
-        self.tcp_port = services.get('app_svc').config['secrets']['terminal']['socket']['tcp']
+        self.tcp_port = services.get('app_svc').config['configs']['terminal']['socket']['tcp']
         self.tcp_handler = TcpSessionHandler(services, self.log)
 
     async def start(self):
