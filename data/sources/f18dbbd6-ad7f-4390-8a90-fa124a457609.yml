@@ -1,7 +1,0 @@
----
-
-id: f18dbbd6-ad7f-4390-8a90-fa124a457609
-name: terminal
-facts:
-  - trait: tcp_socket
-    value: 127.0.0.1:5678
