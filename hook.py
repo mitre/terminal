@@ -22,11 +22,11 @@ async def enable(services):
     app.router.add_static('/terminal', 'plugins/terminal/static/', append_version=True)
     app.router.add_route('GET', '/plugin/terminal/gui', term_api.splash)
     app.router.add_route('POST', '/plugin/terminal/report', term_api.download_report)
+    services.get('data_svc').data_dirs.add('plugins/terminal/data')
 
     await services.get('contact_svc').register(tcp_conn)
     await services.get('contact_svc').register(Udp(services))
     await services.get('file_svc').add_special_payload('manx.go', term_api.dynamically_compile)
-    await services.get('data_svc').load_data(directory='plugins/terminal/data')
 
     logging.getLogger('websockets').setLevel(logging.FATAL)
     asyncio.get_event_loop().create_task(start_emulator_connection(term_api))
