@@ -1,3 +1,4 @@
+import re
 import asyncio
 import json
 import logging
@@ -15,7 +16,12 @@ address = '/plugin/terminal/gui'
 
 async def enable(services):
     await services.get('data_svc').apply('sessions')
+
+    app_svc = services.get('app_svc')
     app = services.get('app_svc').application
+    app_svc.hot_swap_traits.append(
+        lambda v: re.sub(re.compile('TRM_TCP'), str(app_svc.config['configs']['terminal']['socket']['tcp']), v)
+    )
     tcp_conn = Tcp(services)
 
     term_api = TermApi(services, tcp_conn)
