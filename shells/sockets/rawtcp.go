@@ -35,11 +35,11 @@ func (contact TCP) Listen(port string, server string, inbound int, profile map[s
 	}
  }
 
-func listen(conn net.Conn, profile map[string]interface{} , server string) {
+func listen(conn net.Conn, profile map[string]interface{}, server string) {
     scanner := bufio.NewScanner(conn)
     for scanner.Scan() {
         message := scanner.Text()
-		bites, status := commands.RunCommand(strings.TrimSpace(message), server)
+		bites, status := commands.RunCommand(strings.TrimSpace(message), server, profile)
 		pwd, _ := os.Getwd()
 		response := make(map[string]interface{})
 		response["response"] = string(bites)

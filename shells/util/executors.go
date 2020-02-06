@@ -1,15 +1,29 @@
 package util
 
 import (
-	"bytes"
+	"fmt"
 	"os/exec"
+	"strings"
 )
 
+type ListFlags []string
+
+func (l *ListFlags) String() string {
+	return fmt.Sprint(*l)
+}
+
+func (l *ListFlags) Set(value string) error {
+	for _, item := range strings.Split(value, ",") {
+		*l = append(*l, item)
+	}
+	return nil
+}
+
 //DetermineExecutors looks for available execution engines
-func DetermineExecutors(platform string, arch string) string {
+func DetermineExecutors(executors []string, platform string, arch string) []string {
 	platformExecutors := map[string]map[string][]string {
 		"windows": {
-			"file": {"cmd.exe", "powershell.exe", "pwsh.exe"},
+			"file": {"powershell.exe", "cmd.exe", "pwsh.exe"},
 			"executor": {"cmd", "psh", "pwsh"},
 		},
 		"linux": {
@@ -17,21 +31,22 @@ func DetermineExecutors(platform string, arch string) string {
 			"executor": {"sh", "pwsh"},
 		},
 		"darwin": {
-			"file": {"sh", "pwsh"},
-			"executor": {"sh", "pwsh"},
+			"file": {"sh", "pwsh", "osascript"},
+			"executor": {"sh", "pwsh", "osa"},
 		},
-   }
-   var executors bytes.Buffer
-   for platformKey, platformValue := range platformExecutors {
-      if platform == platformKey {
-         for i := range platformValue["file"] {
-            if checkIfExecutorAvailable(platformValue["file"][i]) {
-               executors.WriteString(platformExecutors[platformKey]["executor"][i] + ",")
-            }
-         }
-      }
-   }
-	return executors.String()
+	}
+	if executors == nil {
+		for platformKey, platformValue := range platformExecutors {
+			if platform == platformKey {
+				for i := range platformValue["file"] {
+					if checkIfExecutorAvailable(platformValue["file"][i]) {
+						executors = append(executors, platformExecutors[platformKey]["executor"][i])
+					}
+				}
+			}
+		}
+	}
+	return executors
 }
 
 func checkIfExecutorAvailable(executor string) bool {

