@@ -1,7 +1,0 @@
----
-
-id: ed32b9c3-9593-4c33-b0db-e2007315096b
-name: basic
-facts:
-  - trait: socket
-    value: APP_POST:TRM_TCP

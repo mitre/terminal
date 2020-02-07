@@ -12,12 +12,11 @@ class Udp(BaseWorld):
         self.description = 'Communication occurs through a raw UDP socket'
         self.log = self.create_logger('contact_udp')
         self.contact_svc = services.get('contact_svc')
-        self.udp_port = services.get('app_svc').config['configs']['terminal']['socket']['udp']
         self.udp_handler = UdpSessionHandler(services)
 
     async def start(self):
         loop = asyncio.get_event_loop()
-        loop.create_task(loop.create_datagram_endpoint(lambda: self.udp_handler, local_addr=('0.0.0.0', self.udp_port)))
+        loop.create_task(loop.create_datagram_endpoint(lambda: self.udp_handler, local_addr=('0.0.0.0', 5679)))
 
     @staticmethod
     def valid_config():
