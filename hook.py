@@ -4,6 +4,7 @@ import logging
 
 import websockets
 
+from app.utility.base_world import BaseWorld
 from plugins.terminal.app.contact_tcp import Tcp
 from plugins.terminal.app.contact_udp import Udp
 from plugins.terminal.app.term_api import TermApi
@@ -14,6 +15,10 @@ address = '/plugin/terminal/gui'
 
 
 async def enable(services):
+    app_facts = BaseWorld.get_config('facts')
+    app_facts.append(dict(trait='app.tcp', value='0.0.0.0:5678'))
+    app_facts.append(dict(trait='app.udp', value='0.0.0.0:5679'))
+
     await services.get('data_svc').apply('sessions')
     app = services.get('app_svc').application
     tcp_conn = Tcp(services)
