@@ -13,13 +13,13 @@ class Tcp(BaseWorld):
         self.name = 'tcp'
         self.description = 'Communication occurs through a raw TCP socket'
         self.log = self.create_logger('contact_tcp')
+        self.app_svc = services.get('app_svc')
         self.contact_svc = services.get('contact_svc')
-        self.tcp_port = services.get('app_svc').config['configs']['terminal']['socket']['tcp']
         self.tcp_handler = TcpSessionHandler(services, self.log)
 
     async def start(self):
         loop = asyncio.get_event_loop()
-        loop.create_task(asyncio.start_server(self.tcp_handler.accept, '0.0.0.0', self.tcp_port, loop=loop))
+        loop.create_task(asyncio.start_server(self.tcp_handler.accept, '0.0.0.0', 5678, loop=loop))
         loop.create_task(self.operation_loop())
 
     async def operation_loop(self):
