@@ -33,7 +33,7 @@ async def enable(services):
 
 async def destroy(services):
     r_dir = await services['file_svc'].create_exfil_sub_directory(
-        '%s/reports' % services['app_svc'].config.reports_dir
+        '%s/reports' % services['app_svc'].get_config('reports_dir')
     )
     report = json.dumps(dict(services['term_api'].reverse_report)).encode()
     await services['file_svc'].save_file('reverse_report', report, r_dir)

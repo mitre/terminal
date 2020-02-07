@@ -16,6 +16,7 @@ class TermApi(BaseService):
         self.log = self.add_service('term_api', self)
         self.auth_svc = services.get('auth_svc')
         self.file_svc = services.get('file_svc')
+        self.data_svc = services.get('data_svc')
         self.contact_svc = services.get('contact_svc')
         self.app_svc = services.get('app_svc')
         self.socket_conn = socket_conn
@@ -25,7 +26,9 @@ class TermApi(BaseService):
     async def splash(self, request):
         await self.auth_svc.check_permissions(request)
         await self.socket_conn.tcp_handler.refresh()
-        return dict(sessions=[dict(id=s.id, info=s.paw) for s in self.socket_conn.tcp_handler.sessions])
+        sessions = [dict(id=s.id, info=s.paw) for s in self.socket_conn.tcp_handler.sessions]
+        delivery_cmds = await self.data_svc.locate('abilities', dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d'))
+        return dict(sessions=sessions, delivery_cmds=[cmd.display for cmd in delivery_cmds])
 
     async def download_report(self, request):
         await self.auth_svc.check_permissions(request)
