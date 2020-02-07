@@ -1,4 +1,3 @@
-import re
 import asyncio
 import json
 import logging
@@ -16,12 +15,7 @@ address = '/plugin/terminal/gui'
 
 async def enable(services):
     await services.get('data_svc').apply('sessions')
-
-    app_svc = services.get('app_svc')
     app = services.get('app_svc').application
-    app_svc.hot_swap_traits.append(
-        lambda v: re.sub(re.compile('TRM_TCP'), str(app_svc.config['configs']['terminal']['socket']['tcp']), v)
-    )
     tcp_conn = Tcp(services)
 
     term_api = TermApi(services, tcp_conn)
@@ -39,7 +33,7 @@ async def enable(services):
 
 async def destroy(services):
     r_dir = await services['file_svc'].create_exfil_sub_directory(
-        '%s/reports' % services['app_svc'].config['reports_dir']
+        '%s/reports' % services['app_svc'].config.reports_dir
     )
     report = json.dumps(dict(services['term_api'].reverse_report)).encode()
     await services['file_svc'].save_file('reverse_report', report, r_dir)
