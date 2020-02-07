@@ -13,7 +13,6 @@ class Tcp(BaseWorld):
         self.name = 'tcp'
         self.description = 'Communication occurs through a raw TCP socket'
         self.log = self.create_logger('contact_tcp')
-        self.app_svc = services.get('app_svc')
         self.contact_svc = services.get('contact_svc')
         self.tcp_handler = TcpSessionHandler(services, self.log)
 
