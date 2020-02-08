@@ -16,7 +16,7 @@ term.onData(function(data) {
  if(code === 13) {
      runCommand(input);
      input = "";
- } else if (code === 127) {
+ } else if (code === 127 && input.length > 0) {
      term.write("\b \b");
      input = input.substr(0, input.length - 1);
  } else if (code < 32) {
