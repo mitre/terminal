@@ -17,7 +17,8 @@ term.onData(function(data) {
      runCommand(input);
      input = "";
  } else if (code === 127) {
-    // implement backspace
+     term.write("\b \b");
+     input = input.substr(0, input.length - 1);
  } else if (code < 32) {
      return;
  } else {
