@@ -27,8 +27,8 @@
     windows:
       psh:
         command: |
-          server="#{app.redirect.http}";
-          socket="#{app.redirect.tcp}";
+          $server="#{app.redirect.http}";
+          $socket="#{app.redirect.tcp}";
           $contact="tcp";
           $url="$server/file/download";
           $wc=New-Object System.Net.WebClient;
