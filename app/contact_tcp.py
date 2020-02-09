@@ -64,7 +64,7 @@ class TcpSessionHandler(BaseWorld):
         profile['executors'] = [e for e in profile['executors'].split(',') if e]
         profile['contact'] = 'tcp'
         agent, instructions = await self.services.get('contact_svc').handle_heartbeat(**profile)
-        new_session = Session(id=len(self.sessions) + 1, paw=agent.paw, connection=connection)
+        new_session = Session(id=self.generate_number(size=6), paw=agent.paw, connection=connection)
         self.sessions.append(new_session)
         await self.send(new_session.id, agent.paw)
 
