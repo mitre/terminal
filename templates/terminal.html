@@ -51,7 +51,7 @@
                     <table class="ability-filter" frame=void rules=rows style="border-spacing:5px;width:100%">
                     <tr>
                         <td>
-                        <select id="session-id"  onchange="getAbilities()">
+                        <select id="session-id"  onchange="getAbilities();clearTerminal();">
                              <option value="" disabled selected>Select a session</option>
                              {% for s in sessions %}
                                  <option value="{{ s.id }}" data-paw="{{ s.info }}">{{ s.id }} - {{ s.info }}</option>
@@ -82,3 +82,28 @@
          </div>
     </div>
 </div>
+<script>
+    let refresher = setInterval(refresh, 10000);
+    console.log('terminal refresh on');
+    $('.section-profile').bind('destroyed', function() {
+        console.log('terminal refresh off');
+        clearInterval(refresher);
+    });
+
+    function refresh(){
+        function refreshSessions(data){
+            data.forEach(function(s) {
+                let found = false;
+                $("#session-id > option").each(function() {
+                    if($(this).data('paw') === s.info) {
+                        found = true;
+                    }
+                });
+                if(!found){
+                    $('#session-id').append('<option value="'+s.id+'" data-paw="'+s.info+'">'+s.id+' - '+s.info+'</option>');
+                }
+            });
+        }
+        restRequest('POST', null, refreshSessions, '/plugin/terminal/sessions')
+    }
+</script>
