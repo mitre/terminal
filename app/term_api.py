@@ -7,6 +7,7 @@ from shutil import which
 from aiohttp import web
 from aiohttp_jinja2 import template
 
+from app.service.auth_svc import check_authorization
 from app.utility.base_service import BaseService
 
 
@@ -22,13 +23,19 @@ class TermApi(BaseService):
         self.socket_conn = socket_conn
         self.reverse_report = defaultdict(list)
 
+    @check_authorization
     @template('terminal.html')
     async def splash(self, request):
-        await self.auth_svc.check_permissions(request)
         await self.socket_conn.tcp_handler.refresh()
         sessions = [dict(id=s.id, info=s.paw) for s in self.socket_conn.tcp_handler.sessions]
         delivery_cmds = await self.data_svc.locate('abilities', dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d'))
         return dict(sessions=sessions, delivery_cmds=[cmd.display for cmd in delivery_cmds])
+
+    @check_authorization
+    async def sessions(self, request):
+        await self.socket_conn.tcp_handler.refresh()
+        sessions = [dict(id=s.id, info=s.paw) for s in self.socket_conn.tcp_handler.sessions]
+        return web.json_response(sessions)
 
     async def download_report(self, request):
         await self.auth_svc.check_permissions(request)
