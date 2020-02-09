@@ -25,6 +25,8 @@ async def enable(services):
     term_api = TermApi(services, tcp_conn)
     app.router.add_static('/terminal', 'plugins/terminal/static/', append_version=True)
     app.router.add_route('GET', '/plugin/terminal/gui', term_api.splash)
+    app.router.add_route('POST', '/plugin/terminal/sessions', term_api.sessions)
+
     app.router.add_route('POST', '/plugin/terminal/report', term_api.download_report)
 
     await services.get('contact_svc').register(tcp_conn)

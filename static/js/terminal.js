@@ -1,13 +1,11 @@
 // talk to server
 let webSocket = location.hostname+':8765';
-let tcpPort = location.hostname+':5678';
 
 // build terminal emulator
 let prompt = "~$ ";
 let term = new Terminal();
 term.setOption('cursorBlink', true);
 term.open(document.getElementById('xterminal'));
-term.write(prompt);
 
 // run terminal emulator
 let input = "";
@@ -37,13 +35,19 @@ function runCommand(input) {
      socket.send(input);
  };
  socket.onmessage = function (s) {
-     let jData = JSON.parse(s.data);
-     let lines = jData["response"].split('\n');
-     for(let i = 0;i < lines.length;i++){
-        term.write("\r\n"+lines[i]);
+     try {
+         let jData = JSON.parse(s.data);
+         let lines = jData["response"].split('\n');
+         for(let i = 0;i < lines.length;i++){
+            term.write("\r\n"+lines[i]);
+         }
+         prompt = jData["pwd"];
+         term.write("\r\n"+prompt+" ");
+     } catch(err){
+         term.write("\r\n"+'Dead session. Probably. It has been removed.');
+         clearTerminal();
+         $('#session-id option:selected').remove();
      }
-     prompt = jData["pwd"];
-     term.write("\r\n"+prompt+" ");
  };
 }
 
@@ -114,4 +118,10 @@ function showProcedure() {
          return;
      }
  });
+}
+
+function clearTerminal(){
+    input = "";
+    prompt = '~$ ';
+    term.write("\r\n"+prompt+" ");
 }
