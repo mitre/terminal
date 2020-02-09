@@ -37,8 +37,8 @@ class TermApi(BaseService):
         sessions = [dict(id=s.id, info=s.paw) for s in self.socket_conn.tcp_handler.sessions]
         return web.json_response(sessions)
 
+    @check_authorization
     async def download_report(self, request):
-        await self.auth_svc.check_permissions(request)
         return web.json_response(dict(self.reverse_report))
 
     async def dynamically_compile(self, headers):
