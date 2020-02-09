@@ -101,21 +101,20 @@ function filterTechniques() {
  });
 }
 function filterProcedures() {
- $('#procedure-filter').empty().append("<option disabled='disabled' selected>Choose a procedure</option>");
- ABILITIES.forEach(function(ability){
-     if(ability.tactic === $('#tactic-filter').val() && ability.technique_id === $('#technique-filter').val()) {
-         $('#procedure-filter').append('<option value="'+ability.ability_id+'">'+ability.name+'</option>');
-     }
- });
+    $('#procedure-filter').empty().append("<option disabled='disabled' selected>Choose a procedure</option>");
+        ABILITIES.forEach(function(ability){
+         if(ability.tactic === $('#tactic-filter').val() && ability.technique_id === $('#technique-filter').val()) {
+             $('#procedure-filter').append('<option value="'+ability.ability_id+'">'+ability.name+'</option>');
+         }
+    });
 }
 function showProcedure() {
- ABILITIES.forEach(function(ability){
-     if(ability.ability_id === $('#procedure-filter').val()) {
-         term.write(atob(ability.test));
-         input = atob(ability.test);
-         return;
-     }
- });
+    function displayProcedure(data){
+        let a = data[0];
+        term.write(atob(a.test));
+        input = atob(a.test);
+    }
+    restRequest('POST', {'index':'ability','ability_id':$('#procedure-filter').val()}, displayProcedure)
 }
 
 function clearTerminal(){
