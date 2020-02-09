@@ -51,10 +51,12 @@ function runCommand(input) {
  };
 }
 
-// general helpful functions
-
 function displayCommand(){
-$('#delivery-command').text(atob(document.getElementById("dcommands").value));
+    function displayMe(data){
+        $('#delivery-command').text(atob(data[0].test));
+    }
+    let cmd = $('#dcommands option:selected');
+    restRequest('POST', {'index':'ability','ability_id':cmd.val(),'platform':cmd.text()}, displayMe);
 }
 
 function openLocalDuk() {
