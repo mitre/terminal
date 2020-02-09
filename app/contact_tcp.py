@@ -23,6 +23,7 @@ class Tcp(BaseWorld):
 
     async def operation_loop(self):
         while True:
+            await self.tcp_handler.refresh()
             for session in self.tcp_handler.sessions:
                 _, instructions = await self.contact_svc.handle_heartbeat(paw=session.paw)
                 for instruction in instructions:
