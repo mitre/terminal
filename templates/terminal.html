@@ -84,9 +84,7 @@
 </div>
 <script>
     let refresher = setInterval(refresh, 10000);
-    console.log('terminal refresh on');
     $('.section-profile').bind('destroyed', function() {
-        console.log('terminal refresh off');
         clearInterval(refresher);
     });
 
