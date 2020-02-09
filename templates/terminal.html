@@ -21,7 +21,7 @@
              <select id="dcommands" onchange="displayCommand()">
                 <option value="" disabled selected>Select an OS</option>
                 {% for cmd in delivery_cmds %}
-                    <option value="{{ cmd.test }}">{{ cmd.platform }}</option>
+                    <option value="{{ cmd.ability_id }}">{{ cmd.platform }}</option>
                 {% endfor %}
              </select>
             <br><br>
