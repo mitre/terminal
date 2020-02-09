@@ -72,10 +72,6 @@ $('#duk-text').text('Did you know... there are a handful of special commands you
     'Check the documentation for a full list.');
 }
 
-function removeSection(identifier){
- $('#'+identifier).hide();
-}
-
 // ability filter options
 
 let ABILITIES = [];
