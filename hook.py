@@ -12,7 +12,7 @@ from plugins.terminal.app.term_api import TermApi
 name = 'Terminal'
 description = 'A toolset which supports terminal access'
 address = '/plugin/terminal/gui'
-authentication = 'red'
+access = BaseWorld.Access.RED
 
 
 async def enable(services):
