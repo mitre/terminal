@@ -9,10 +9,18 @@ term.open(document.getElementById('xterminal'));
 
 // run terminal emulator
 let input = "";
+let shellHistory = [];
+let shellHistoryIndex = 0;
 term.onData(function(data) {
  const code = data.charCodeAt(0);
  if(code === 13) {
      runCommand(input);
+     if (input !== "") {
+         shellHistory.pop();
+         shellHistory.push(input);
+         shellHistory.push("");
+         shellHistoryIndex = shellHistory.length - 1;
+     }
      input = "";
  } else if (code === 127) {
      if (input.length > 0) {
@@ -20,6 +28,8 @@ term.onData(function(data) {
          input = input.substr(0, input.length - 1);
      }
      return;
+ } else if (code === 27) {
+    updateHistory(data);
  } else if (code < 32) {
      return;
  } else {
@@ -27,6 +37,36 @@ term.onData(function(data) {
      input += data;
  }
 });
+
+function updateHistory(data) {
+    if (shellHistory.length > 0) {
+        if (data.localeCompare("[A") === 0) {
+            handleUpArrow();
+        } else if (data.localeCompare("[B") === 0){
+            handleDownArrow();
+        }
+    }
+}
+
+function handleUpArrow(){
+    if (shellHistoryIndex > 0) {
+        shellHistoryIndex--;
+        writeHistory(shellHistory[shellHistoryIndex]);
+    }
+}
+
+function handleDownArrow() {
+    if (shellHistoryIndex < shellHistory.length - 1){
+        shellHistoryIndex++;
+        writeHistory(shellHistory[shellHistoryIndex]);
+    }
+}
+
+function writeHistory(value) {
+    term.write('\33[2K\r' + prompt + "> ");
+    term.write(value);
+    input = value;
+}
 
 function runCommand(input) {
  let sessionId = $('#session-id option:selected').attr('value');
@@ -42,7 +82,7 @@ function runCommand(input) {
             term.write("\r\n"+lines[i]);
          }
          prompt = jData["pwd"];
-         term.write("\r\n"+prompt+" ");
+         term.write("\r\n"+prompt+"> ");
      } catch(err){
          term.write("\r\n"+'Dead session. Probably. It has been removed.');
          clearTerminal();
@@ -118,6 +158,10 @@ function showProcedure() {
 }
 
 function clearTerminal(){
+    term.write('\33[2K\r');
+    term.clear();
+    shellHistory = [];
+    shellHistoryIndex = 0;
     input = "";
     prompt = '~$ ';
     term.write("\r\n"+prompt+" ");
