@@ -50,15 +50,15 @@ function updateHistory(data) {
 
 function handleUpArrow(){
     if (shellHistoryIndex > 0) {
-        writeHistory(shellHistory[shellHistoryIndex-1]);
         shellHistoryIndex--;
+        writeHistory(shellHistory[shellHistoryIndex]);
     }
 }
 
 function handleDownArrow() {
     if (shellHistoryIndex < shellHistory.length - 1){
-        writeHistory(shellHistory[shellHistoryIndex+1]);
         shellHistoryIndex++;
+        writeHistory(shellHistory[shellHistoryIndex]);
     }
 }
 
