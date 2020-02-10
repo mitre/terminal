@@ -51,7 +51,7 @@
                     <table class="ability-filter" frame=void rules=rows style="border-spacing:5px;width:100%">
                     <tr>
                         <td>
-                        <select id="session-id"  onchange="getAbilities();clearTerminal();">
+                        <select id="session-id"  onchange="getAbilities();clearTerminal();getShellHistory(this);">
                              <option value="" disabled selected>Select a session</option>
                              {% for s in sessions %}
                                  <option value="{{ s.id }}" data-paw="{{ s.info }}">{{ s.id }} - {{ s.info }}</option>
