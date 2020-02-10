@@ -39,6 +39,9 @@ class TermApi(BaseService):
 
     @check_authorization
     async def download_report(self, request):
+        data = dict(await request.json())
+        if data['id']:
+            return web.json_response(self.reverse_report[data['id']])
         return web.json_response(dict(self.reverse_report))
 
     async def dynamically_compile(self, headers):

@@ -14,12 +14,14 @@ let shellHistoryIndex = 0;
 term.onData(function(data) {
  const code = data.charCodeAt(0);
  if(code === 13) {
-     runCommand(input);
-     if (input !== "") {
+     if (input !== "" && !checkSpecialKeywords(input)) {
+         runCommand(input);
          shellHistory.pop();
          shellHistory.push(input);
          shellHistory.push("");
          shellHistoryIndex = shellHistory.length - 1;
+     } else {
+         term.write('\r\n' + prompt + ' ');
      }
      input = "";
  } else if (code === 127) {
@@ -63,9 +65,38 @@ function handleDownArrow() {
 }
 
 function writeHistory(value) {
-    term.write('\33[2K\r' + prompt + "> ");
+    term.write('\33[2K\r' + prompt + " ");
     term.write(value);
     input = value;
+}
+
+function getShellHistory(elem) {
+    restRequest('POST', {'id':elem.options[elem.selectedIndex].getAttribute('data-paw')}, populateHistory, endpoint='/plugin/terminal/report');
+}
+
+function populateHistory(data) {
+    if (data.length > 0){
+        for (let index in data) {
+            shellHistory.push(data[index]['cmd']);
+        }
+        shellHistory.push("");
+        shellHistoryIndex = shellHistory.length - 1;
+    }
+}
+
+function displayHistory() {
+    for (let i = 0; i < shellHistory.length - 1; i++) {
+        term.write('\r\n['+i+']  ' +shellHistory[i]);
+    }
+}
+
+function checkSpecialKeywords(word) {
+    if (word.localeCompare("history") === 0) {
+        console.log("displaying history");
+        displayHistory();
+        return true
+    }
+    return false
 }
 
 function runCommand(input) {
@@ -82,7 +113,7 @@ function runCommand(input) {
             term.write("\r\n"+lines[i]);
          }
          prompt = jData["pwd"];
-         term.write("\r\n"+prompt+"> ");
+         term.write("\r\n"+prompt+' ');
      } catch(err){
          term.write("\r\n"+'Dead session. Probably. It has been removed.');
          clearTerminal();
