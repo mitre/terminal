@@ -158,6 +158,10 @@ function showProcedure() {
 }
 
 function clearTerminal(){
+    term.write('\33[2K\r');
+    term.clear();
+    shellHistory = [];
+    shellHistoryIndex = 0;
     input = "";
     prompt = '~$ ';
     term.write("\r\n"+prompt+" ");
