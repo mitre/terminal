@@ -13,14 +13,15 @@ from app.utility.base_service import BaseService
 
 class TermApi(BaseService):
 
-    def __init__(self, services, socket_conn):
+    def __init__(self, services):
         self.log = self.add_service('term_api', self)
         self.auth_svc = services.get('auth_svc')
         self.file_svc = services.get('file_svc')
         self.data_svc = services.get('data_svc')
         self.contact_svc = services.get('contact_svc')
         self.app_svc = services.get('app_svc')
-        self.socket_conn = socket_conn
+        tcp_conn = [c for c in self.contact_svc.contacts if c.name == 'tcp']
+        self.socket_conn = tcp_conn[0]
         self.reverse_report = defaultdict(list)
 
     @check_authorization
