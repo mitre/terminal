@@ -1,5 +1,4 @@
 import json
-
 from collections import defaultdict
 from datetime import datetime
 from shutil import which
@@ -7,7 +6,7 @@ from shutil import which
 from aiohttp import web
 from aiohttp_jinja2 import template
 
-from app.service.auth_svc import check_authorization
+from app.service.auth_svc import red_authorization
 from app.utility.base_service import BaseService
 
 
@@ -20,11 +19,12 @@ class TermApi(BaseService):
         self.data_svc = services.get('data_svc')
         self.contact_svc = services.get('contact_svc')
         self.app_svc = services.get('app_svc')
+        self.rest_svc = services.get('rest_svc')
         tcp_conn = [c for c in self.contact_svc.contacts if c.name == 'tcp']
         self.socket_conn = tcp_conn[0]
         self.reverse_report = defaultdict(list)
 
-    @check_authorization
+    @red_authorization
     @template('terminal.html')
     async def splash(self, request):
         await self.socket_conn.tcp_handler.refresh()
@@ -32,18 +32,24 @@ class TermApi(BaseService):
         delivery_cmds = await self.data_svc.locate('abilities', dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d'))
         return dict(sessions=sessions, delivery_cmds=[cmd.display for cmd in delivery_cmds])
 
-    @check_authorization
+    @red_authorization
     async def sessions(self, request):
         await self.socket_conn.tcp_handler.refresh()
         sessions = [dict(id=s.id, info=s.paw) for s in self.socket_conn.tcp_handler.sessions]
         return web.json_response(sessions)
 
-    @check_authorization
+    @red_authorization
     async def download_report(self, request):
         data = dict(await request.json())
         if data.get('id'):
             return web.json_response(self.reverse_report[data['id']])
         return web.json_response(dict(self.reverse_report))
+
+    @red_authorization
+    async def get_abilities(self, request):
+        data = dict(await request.json())
+        abilities = await self.rest_svc.find_abilities(paw=data['paw'])
+        return web.json_response(dict(abilities=[a.display for a in abilities]))
 
     async def dynamically_compile(self, headers):
         name, platform = headers.get('file'), headers.get('platform')
