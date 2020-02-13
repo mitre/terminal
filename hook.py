@@ -21,6 +21,8 @@ async def enable(services):
     app.router.add_route('GET', '/plugin/terminal/gui', term_api.splash)
     app.router.add_route('POST', '/plugin/terminal/sessions', term_api.sessions)
     app.router.add_route('POST', '/plugin/terminal/report', term_api.download_report)
+    app.router.add_route('POST', '/plugin/terminal/ability', term_api.get_abilities)
+
     await services.get('file_svc').add_special_payload('manx.go', term_api.dynamically_compile)
 
     logging.getLogger('websockets').setLevel(logging.FATAL)

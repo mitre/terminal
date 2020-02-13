@@ -159,7 +159,7 @@ function getAbilities() {
          }
      });
  }
- restRequest('POST', {"paw": $('#session-id option:selected').data('paw')}, getAbilitiesCallback, '/api/ability');
+ restRequest('POST', {"paw": $('#session-id option:selected').data('paw')}, getAbilitiesCallback, '/plugin/terminal/ability');
 }
 function filterTechniques() {
  let found = [];
