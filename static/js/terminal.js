@@ -127,7 +127,7 @@ function displayCommand(){
         $('#delivery-command').text(atob(data[0].test));
     }
     let cmd = $('#dcommands option:selected');
-    restRequest('POST', {'index':'ability','ability_id':cmd.val(),'platform':cmd.text()}, displayMe);
+    restRequest('POST', {'index':'abilities','ability_id':cmd.val(),'platform':cmd.text()}, displayMe);
 }
 
 function openLocalDuk() {
@@ -185,7 +185,7 @@ function showProcedure() {
         term.write(atob(a.test));
         input = atob(a.test);
     }
-    restRequest('POST', {'index':'ability','ability_id':$('#procedure-filter').val()}, displayProcedure)
+    restRequest('POST', {'index':'abilities','ability_id':$('#procedure-filter').val()}, displayProcedure)
 }
 
 function clearTerminal(){
