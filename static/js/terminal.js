@@ -1,6 +1,3 @@
-// talk to server
-let webSocket = location.hostname+':8765';
-
 // build terminal emulator
 let prompt = "~$ ";
 let term = new Terminal();
@@ -101,7 +98,7 @@ function checkSpecialKeywords(word) {
 
 function runCommand(input) {
  let sessionId = $('#session-id option:selected').attr('value');
- let socket = new WebSocket('ws://'+webSocket+'/'+sessionId);
+ let socket = new WebSocket('ws://'+location.hostname+':7001/terminal/'+sessionId);
  socket.onopen = function () {
      socket.send(input);
  };
