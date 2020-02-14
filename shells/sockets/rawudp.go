@@ -21,6 +21,7 @@ func init() {
 func (contact UDP) Listen(port string, server string, inbound int, profile map[string]interface{}) {
 	profile["paw"]= buildPaw()
 	profile["callback"] = inbound
+	profile["tag"] = "beacon"
 	go callMeBack(inbound)
 
 	for {
