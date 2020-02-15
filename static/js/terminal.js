@@ -98,7 +98,8 @@ function checkSpecialKeywords(word) {
 
 function runCommand(input) {
  let sessionId = $('#session-id option:selected').attr('value');
- let socket = new WebSocket('ws://'+location.hostname+':7001/terminal/'+sessionId);
+ let websocket = $('#websocket-data').data('websocket');
+ let socket = new WebSocket('ws://'+websocket+'/terminal/'+sessionId);
  socket.onopen = function () {
      socket.send(input);
  };
