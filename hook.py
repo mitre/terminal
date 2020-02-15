@@ -1,6 +1,7 @@
 import json
 
 from app.utility.base_world import BaseWorld
+from plugins.terminal.app.h_terminal import Handle
 from plugins.terminal.app.term_api import TermApi
 
 name = 'Terminal'
@@ -13,6 +14,9 @@ async def enable(services):
     await services.get('data_svc').apply('sessions')
     app = services.get('app_svc').application
     term_api = TermApi(services)
+
+    udp_contact = [c for c in services.get('contact_svc').contacts if c.name == 'websocket']
+    udp_contact[0].handler.handles.append(Handle(tag='terminal'))
 
     app.router.add_static('/terminal', 'plugins/terminal/static/', append_version=True)
     app.router.add_route('GET', '/plugin/terminal/gui', term_api.splash)

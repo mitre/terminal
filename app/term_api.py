@@ -24,8 +24,10 @@ class TermApi(BaseService):
     async def splash(self, request):
         await self.term_svc.socket_conn.tcp_handler.refresh()
         sessions = [dict(id=s.id, info=s.paw) for s in self.term_svc.socket_conn.tcp_handler.sessions]
-        delivery_cmds = await self.data_svc.locate('abilities', dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d'))
-        return dict(sessions=sessions, delivery_cmds=[cmd.display for cmd in delivery_cmds])
+        delivery_cmds = [
+            c.display for c in await self.data_svc.locate('abilities', dict(ability_id='356d1722-7784-40c4-822b-0cf864b0b36d'))
+        ]
+        return dict(sessions=sessions, delivery_cmds=delivery_cmds, websocket=self.get_config('app.contact.websocket'))
 
     @red_authorization
     async def sessions(self, request):
