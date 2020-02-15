@@ -36,11 +36,10 @@ class TermApi(BaseService):
         return web.json_response(sessions)
 
     @red_authorization
-    async def download_report(self, request):
+    async def get_history(self, request):
         data = dict(await request.json())
-        if data.get('id'):
-            return web.json_response(self.term_svc.reverse_report[data['id']])
-        return web.json_response(dict(self.term_svc.reverse_report))
+        history = [entry for entry in self.contact_svc.report['websocket'] if entry['paw'] == data.get('paw')]
+        return web.json_response(history)
 
     @red_authorization
     async def get_abilities(self, request):

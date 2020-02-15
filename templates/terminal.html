@@ -24,14 +24,7 @@
                     <option value="{{ cmd.ability_id }}">{{ cmd.platform }}</option>
                 {% endfor %}
              </select>
-            <br><br>
-            <hr>
             <br>
-            <p>
-                All commands executed through the reverse-shell emulator (below) are logged into a report.
-                Download it anytime.
-            </p>
-            <button id="reportBtn" type="button" class="button-success atomic-button" onclick="downloadReport('/plugin/terminal/report', 'reverse_report')">Download report</button>
         </div>
         <div class="column" style="flex:75%;padding:15px;text-align: left">
             <div style="background-color: var(--primary-background);padding: 15px;border-radius: 25px">

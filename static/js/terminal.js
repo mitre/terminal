@@ -68,7 +68,7 @@ function writeHistory(value) {
 }
 
 function getShellHistory(elem) {
-    restRequest('POST', {'id':elem.options[elem.selectedIndex].getAttribute('data-paw')}, populateHistory, endpoint='/plugin/terminal/report');
+    restRequest('POST', {'paw':elem.options[elem.selectedIndex].getAttribute('data-paw')}, populateHistory, endpoint='/plugin/terminal/history');
 }
 
 function populateHistory(data) {
