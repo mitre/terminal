@@ -3,7 +3,6 @@ from shutil import which
 from aiohttp import web
 from aiohttp_jinja2 import template
 
-from app.service.auth_svc import red_authorization
 from app.utility.base_service import BaseService
 from plugins.terminal.app.term_svc import TermService
 
@@ -19,7 +18,6 @@ class TermApi(BaseService):
         self.rest_svc = services.get('rest_svc')
         self.term_svc = TermService(services)
 
-    @red_authorization
     @template('terminal.html')
     async def splash(self, request):
         await self.term_svc.socket_conn.tcp_handler.refresh()
@@ -29,19 +27,16 @@ class TermApi(BaseService):
         ]
         return dict(sessions=sessions, delivery_cmds=delivery_cmds, websocket=self.get_config('app.contact.websocket'))
 
-    @red_authorization
     async def sessions(self, request):
         await self.term_svc.socket_conn.tcp_handler.refresh()
         sessions = [dict(id=s.id, info=s.paw) for s in self.term_svc.socket_conn.tcp_handler.sessions]
         return web.json_response(sessions)
 
-    @red_authorization
     async def get_history(self, request):
         data = dict(await request.json())
         history = [entry for entry in self.contact_svc.report['websocket'] if entry['paw'] == data.get('paw')]
         return web.json_response(history)
 
-    @red_authorization
     async def get_abilities(self, request):
         data = dict(await request.json())
         abilities = await self.rest_svc.find_abilities(paw=data['paw'])
