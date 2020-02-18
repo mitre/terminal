@@ -122,9 +122,9 @@ function runCommand(input) {
 
 function displayCommand(){
     function displayMe(data){
-        $('#delivery-command').text(atob(data[0].test));
+        $('#delivery-command-terminal').text(atob(data[0].test));
     }
-    let cmd = $('#dcommands option:selected');
+    let cmd = $('#dcommands-terminal option:selected');
     restRequest('POST', {'index':'abilities','ability_id':cmd.val(),'platform':cmd.text()}, displayMe);
 }
 

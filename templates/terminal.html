@@ -18,7 +18,7 @@
                  interact with the compromised host.
              </p>
              <br>
-             <select id="dcommands" onchange="displayCommand()">
+             <select id="dcommands-terminal" onchange="displayCommand()">
                 <option value="" disabled selected>Select an OS</option>
                 {% for cmd in delivery_cmds %}
                     <option value="{{ cmd.ability_id }}">{{ cmd.platform }}</option>
@@ -28,7 +28,7 @@
         </div>
         <div class="column" style="flex:75%;padding:15px;text-align: left">
             <div style="background-color: var(--primary-background);padding: 15px;border-radius: 25px">
-                <code id="delivery-command" style="text-align: left;font-size:14px;"></code>
+                <code id="delivery-command-terminal" style="text-align: left;font-size:14px;"></code>
             </div>
         </div>
     </div>
