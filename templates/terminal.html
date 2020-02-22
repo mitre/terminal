@@ -80,7 +80,10 @@
     $('.section-profile').bind('destroyed', function() {
         clearInterval(refresher);
     });
-
+    $(document).ready(function () {
+        stream('Time to deploy an agent. Choose the OS of a compromised host.');
+    });
+    
     function refresh(){
         function refreshSessions(data){
             data.forEach(function(s) {
