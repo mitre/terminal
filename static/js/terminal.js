@@ -125,6 +125,7 @@ function displayCommand(){
         $('#delivery-command-terminal').text(atob(data[0].test));
     }
     let cmd = $('#dcommands-terminal option:selected');
+    stream('Great, you picked '+cmd.text()+'. Now run the command on the host. It will run in the background - but you can change this if you would like.');
     restRequest('POST', {'index':'abilities','ability_id':cmd.val(),'platform':cmd.text()}, displayMe);
 }
 
