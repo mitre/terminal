@@ -28,10 +28,14 @@ func (contact UDP) Listen(port string, server string, inbound int, profile map[s
 	   conn, err := net.Dial("udp", port)
 	   if err == nil {
 			beacon(conn, profile)
+
+			if err = conn.Close(); err != nil {
+				output.VerbosePrint(fmt.Sprintf("[-] %s", err))
+			}
 		} else {
 			output.VerbosePrint(fmt.Sprintf("[-] %s", err))
 		}
-		conn.Close()
+
 		time.Sleep(60 * time.Second)
 	}
 }
