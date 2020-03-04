@@ -1,8 +1,8 @@
 ---
 
 - id: 356d1722-7784-40c4-822b-0cf864b0b36d
-  name: Deploy Manx
-  description: Start a TCP agent, which includes a reverse-shell
+  name: Manx
+  description: A reverse-shell agent which communicates via the TCP contact
   tactic: initial-access
   technique:
     attack_id: T1199
